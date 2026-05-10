@@ -87,6 +87,11 @@ pnpm dev
 
 **That's it!** All services running (API, database, web UI, microservices).
 
+**Verify setup is working:**
+```bash
+./scripts/verify-setup.sh
+```
+
 ### First Run
 
 1. **Register account** at http://localhost:3001
