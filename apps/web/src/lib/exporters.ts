@@ -8,7 +8,7 @@ import { STLExporter } from 'three/examples/jsm/exporters/STLExporter.js';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 
 export interface ExportOptions {
-  format: 'stl' | 'glb' | 'gltf' | 'obj';
+  format: 'step' | 'iges' | 'stl' | 'glb' | 'gltf' | 'obj';
   binary?: boolean;
   onProgress?: (progress: number) => void;
 }
@@ -213,6 +213,278 @@ export async function exportToOBJ(
 }
 
 /**
+ * Export 3D scene to STEP format
+ * Creates a basic STEP file with geometric representation
+ */
+export async function exportToSTEP(
+  scene: THREE.Object3D,
+  filename: string,
+  options?: { tolerance?: number; unit?: string; onProgress?: (progress: number) => void },
+): Promise<ExportResult> {
+  return new Promise((resolve) => {
+    try {
+      options?.onProgress?.(10);
+
+      // Collect mesh data
+      const meshes: Array<{ geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }> = [];
+      scene.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.geometry) {
+          meshes.push({
+            geometry: child.geometry as THREE.BufferGeometry,
+            matrix: child.matrixWorld,
+          });
+        }
+      });
+
+      if (meshes.length === 0) {
+        throw new Error('No geometry found in scene');
+      }
+
+      options?.onProgress?.(30);
+
+      // Generate STEP file content
+      const stepData = generateSTEPContent(meshes, filename, {
+        tolerance: options?.tolerance ?? 0.01,
+        unit: options?.unit ?? 'MM',
+      });
+
+      options?.onProgress?.(80);
+
+      const outputFilename = filename.replace(/\.[^/.]+$/, '') + '.step';
+
+      options?.onProgress?.(100);
+
+      resolve({
+        success: true,
+        data: stepData,
+        filename: outputFilename,
+        mimeType: 'application/octet-stream',
+      });
+    } catch (error) {
+      resolve({
+        success: false,
+        filename,
+        mimeType: 'application/octet-stream',
+        error: `Failed to export STEP: ${error instanceof Error ? error.message : String(error)}`,
+      });
+    }
+  });
+}
+
+/**
+ * Export 3D scene to IGES format
+ * Creates a basic IGES file with geometric representation
+ */
+export async function exportToIGES(
+  scene: THREE.Object3D,
+  filename: string,
+  options?: { tolerance?: number; unit?: string; onProgress?: (progress: number) => void },
+): Promise<ExportResult> {
+  return new Promise((resolve) => {
+    try {
+      options?.onProgress?.(10);
+
+      // Collect mesh data
+      const meshes: Array<{ geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }> = [];
+      scene.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.geometry) {
+          meshes.push({
+            geometry: child.geometry as THREE.BufferGeometry,
+            matrix: child.matrixWorld,
+          });
+        }
+      });
+
+      if (meshes.length === 0) {
+        throw new Error('No geometry found in scene');
+      }
+
+      options?.onProgress?.(30);
+
+      // Generate IGES file content
+      const igesData = generateIGESContent(meshes, filename, {
+        tolerance: options?.tolerance ?? 0.01,
+        unit: options?.unit ?? 'MM',
+      });
+
+      options?.onProgress?.(80);
+
+      const outputFilename = filename.replace(/\.[^/.]+$/, '') + '.iges';
+
+      options?.onProgress?.(100);
+
+      resolve({
+        success: true,
+        data: igesData,
+        filename: outputFilename,
+        mimeType: 'application/octet-stream',
+      });
+    } catch (error) {
+      resolve({
+        success: false,
+        filename,
+        mimeType: 'application/octet-stream',
+        error: `Failed to export IGES: ${error instanceof Error ? error.message : String(error)}`,
+      });
+    }
+  });
+}
+
+/**
+ * Generate STEP file content from meshes
+ */
+function generateSTEPContent(
+  meshes: Array<{ geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }>,
+  filename: string,
+  _options: { tolerance: number; unit: string },
+): string {
+  const lines: string[] = [];
+
+  // STEP header
+  lines.push('ISO-10303-21;');
+  lines.push('HEADER;');
+  lines.push(`FILE_DESCRIPTION(('CAD Model exported by TSplineForge'),`);
+  lines.push(`  '2;1',`);
+  lines.push(`  ('${new Date().toISOString().split('T')[0]}'),`);
+  lines.push(`  (''),`);
+  lines.push(`  (''),`);
+  lines.push(`  'Unknown',`);
+  lines.push(`  'TSplineForge',`);
+  lines.push(`  '');`);
+
+  lines.push(`FILE_NAME('${filename}',`);
+  lines.push(`  '${new Date().toISOString()}',`);
+  lines.push(`  (''),`);
+  lines.push(`  (''),`);
+  lines.push(`  'Unknown',`);
+  lines.push(`  'Unknown',`);
+  lines.push(`  '');`);
+
+  lines.push(`FILE_SCHEMA(('AP203_CONFIGURATION_CONTROLLED_3D_DESIGN_OF_MECHANICAL_PARTS_AND_ASSEMBLIES'));`);
+  lines.push('ENDSEC;');
+
+  // Data section
+  lines.push('DATA;');
+
+  let entityId = 1;
+  const triangles: Array<{ vertices: THREE.Vector3[]; normal: THREE.Vector3 }> = [];
+
+  // Convert meshes to triangles
+  meshes.forEach((mesh) => {
+    const positionAttribute = mesh.geometry.getAttribute('position');
+    if (!positionAttribute) return;
+
+    const positions = positionAttribute.array as Float32Array;
+    const index = mesh.geometry.getIndex();
+
+    if (index) {
+      const indices = index.array as Uint32Array | Uint16Array;
+      for (let i = 0; i < indices.length; i += 3) {
+        const a = indices[i] * 3;
+        const b = indices[i + 1] * 3;
+        const c = indices[i + 2] * 3;
+
+        const v0 = new THREE.Vector3(positions[a], positions[a + 1], positions[a + 2]).applyMatrix4(mesh.matrix);
+        const v1 = new THREE.Vector3(positions[b], positions[b + 1], positions[b + 2]).applyMatrix4(mesh.matrix);
+        const v2 = new THREE.Vector3(positions[c], positions[c + 1], positions[c + 2]).applyMatrix4(mesh.matrix);
+
+        const edge1 = new THREE.Vector3().subVectors(v1, v0);
+        const edge2 = new THREE.Vector3().subVectors(v2, v0);
+        const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+
+        triangles.push({ vertices: [v0, v1, v2], normal });
+      }
+    }
+  });
+
+  // Write triangles as polyfaces (simplified STEP representation)
+  triangles.forEach((tri) => {
+    const pointIds: number[] = [];
+    tri.vertices.forEach((vertex) => {
+      lines.push(`#${entityId}=CARTESIAN_POINT('',(${vertex.x.toFixed(6)},${vertex.y.toFixed(6)},${vertex.z.toFixed(6)}));`);
+      pointIds.push(entityId);
+      entityId++;
+    });
+
+    lines.push(`#${entityId}=POLYLOOP('',(#${pointIds[0]},#${pointIds[1]},#${pointIds[2]}));`);
+    entityId++;
+  });
+
+  lines.push('ENDSEC;');
+  lines.push('END-ISO-10303-21;');
+
+  return lines.join('\n');
+}
+
+/**
+ * Generate IGES file content from meshes
+ */
+function generateIGESContent(
+  meshes: Array<{ geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }>,
+  filename: string,
+  options: { tolerance: number; unit: string },
+): string {
+  const lines: string[] = [];
+
+  // IGES header section
+  lines.push('                                                                        S      1');
+  lines.push(`1H,,1H,,13HUntitled Model,7HTSplineForge,32,308,15,308,15,${options.unit},1,0.01,15H${new Date().toISOString()},1.E-07,1000,15H${new Date().toISOString()},,,11H,0,0,11H,0,0,0,0,0;     G      1`);
+
+  // Collect triangles
+  let lineCount = 2;
+  const triangles: Array<{ vertices: THREE.Vector3[] }> = [];
+
+  meshes.forEach((mesh) => {
+    const positionAttribute = mesh.geometry.getAttribute('position');
+    if (!positionAttribute) return;
+
+    const positions = positionAttribute.array as Float32Array;
+    const index = mesh.geometry.getIndex();
+
+    if (index) {
+      const indices = index.array as Uint32Array | Uint16Array;
+      for (let i = 0; i < indices.length; i += 3) {
+        const a = indices[i] * 3;
+        const b = indices[i + 1] * 3;
+        const c = indices[i + 2] * 3;
+
+        const v0 = new THREE.Vector3(positions[a], positions[a + 1], positions[a + 2]).applyMatrix4(mesh.matrix);
+        const v1 = new THREE.Vector3(positions[b], positions[b + 1], positions[b + 2]).applyMatrix4(mesh.matrix);
+        const v2 = new THREE.Vector3(positions[c], positions[c + 1], positions[c + 2]).applyMatrix4(mesh.matrix);
+
+        triangles.push({ vertices: [v0, v1, v2] });
+      }
+    }
+  });
+
+  // Write triangles as polyfaces (simplified IGES representation)
+  let directoryCount = 2;
+  const dataLines: string[] = [];
+
+  triangles.forEach((tri, idx) => {
+    const type = 104; // Polyface
+    dataLines.push(`${type}       ${idx * 2 + 1}H ,4HFace,0,0,0,4,${tri.vertices[0].x.toFixed(6)},${tri.vertices[0].y.toFixed(6)},${tri.vertices[0].z.toFixed(6)},`);
+    directoryCount += 2;
+  });
+
+  // Terminate section
+  lines.push('S      1');
+
+  // Directory entry section
+  triangles.forEach((tri, idx) => {
+    const type = 104;
+    const lineNum = idx * 2 + 2;
+    lines.push(`${type}       1       0       0       0       0       0       000000000D${String(lineNum).padStart(7)}`);
+    lines.push(`104       0       0       2       0                               0D${String(lineNum + 1).padStart(7)}`);
+  });
+
+  lineCount = lines.length + dataLines.length;
+  lines.push(`S${String(1).padStart(7)}G${String(1).padStart(7)}D${String(directoryCount).padStart(7)}P${String(lineCount + 1).padStart(7)}${String(lineCount).padStart(8)}`);
+
+  return lines.join('\n');
+}
+
+/**
  * Download exported file to client
  */
 export function downloadFile(
@@ -255,6 +527,12 @@ export async function exportAndDownload(
   let result: ExportResult;
 
   switch (options.format) {
+    case 'step':
+      result = await exportToSTEP(scene, filename, { onProgress: options.onProgress });
+      break;
+    case 'iges':
+      result = await exportToIGES(scene, filename, { onProgress: options.onProgress });
+      break;
     case 'stl':
       result = await exportToSTL(scene, filename, options.binary ?? true);
       break;

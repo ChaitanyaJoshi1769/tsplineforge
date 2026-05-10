@@ -21,12 +21,21 @@ export function ExportButton({ scene, projectName = 'model', className }: Export
   const handleExport = async (filename: string, format: ExportFormat, options: ExportOptions) => {
     if (!scene) return;
 
-    // Convert the new ExportOptions to the old format for backward compatibility
+    // Convert the new ExportOptions to the legacy format that useExport understands
     const stlFormat = (options as unknown as Record<string, unknown>).stlFormat === 'binary' ? 'binary' : 'ascii';
-    const legacyOptions: LegacyExportOptions = {
-      format: (format === 'step' || format === 'iges' ? 'stl' : format) as 'stl' | 'glb' | 'gltf' | 'obj',
+
+    // Map new formats to their corresponding legacy formats
+    // STEP and IGES now have native support in exporters.ts
+    const legacyFormat = (
+      format === 'step' || format === 'iges'
+        ? format as 'step' | 'iges'
+        : format
+    ) as LegacyExportOptions['format'] | 'step' | 'iges';
+
+    const legacyOptions = {
+      format: legacyFormat,
       binary: format === 'stl' ? (stlFormat === 'binary') : true,
-    };
+    } as unknown as LegacyExportOptions;
 
     await performExport(scene, filename, legacyOptions);
   };
