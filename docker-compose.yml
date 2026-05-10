@@ -67,33 +67,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # API Gateway
-  gateway:
-    build:
-      context: .
-      dockerfile: infrastructure/docker/Dockerfile.gateway
-      target: development
-    container_name: tsplineforge-gateway
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: development
-      DATABASE_URL: postgresql://tspline:password@postgres:5432/tsplineforge
-      REDIS_URL: redis://redis:6379
-      NATS_URL: nats://nats:4222
-      S3_ENDPOINT: http://minio:9000
-      JWT_SECRET: dev-secret-key
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      nats:
-        condition: service_healthy
-    volumes:
-      - ./services/gateway/src:/app/src
-    command: npm run dev
-
   # Monitoring (Optional but recommended)
   prometheus:
     image: prom/prometheus:latest
