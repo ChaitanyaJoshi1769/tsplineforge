@@ -2,61 +2,52 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/auth';
-import { useRouter } from 'next/navigation';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login, error } = useAuth();
-  const router = useRouter();
+  const [error, setError] = useState('');
+  const { login, loading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
+    setError('');
     try {
       await login(email, password);
-      router.push('/dashboard');
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm">
       <div>
-        <label className="block text-sm font-medium mb-2">Email</label>
+        <label className="block text-sm font-medium mb-1">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full"
-          disabled={isLoading}
+          className="w-full px-3 py-2 border rounded-lg"
           required
         />
       </div>
-
       <div>
-        <label className="block text-sm font-medium mb-2">Password</label>
+        <label className="block text-sm font-medium mb-1">Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full"
-          disabled={isLoading}
+          className="w-full px-3 py-2 border rounded-lg"
           required
         />
       </div>
-
-      {error && <p className="text-error text-sm">{error}</p>}
-
+      {error && <div className="text-red-500 text-sm">{error}</div>}
       <button
         type="submit"
-        disabled={isLoading}
-        className="w-full bg-primary hover:bg-primary-dark disabled:opacity-50 text-white py-2 rounded font-medium transition"
+        disabled={loading}
+        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
       >
-        {isLoading ? 'Signing in...' : 'Sign in'}
+        {loading ? 'Logging in...' : 'Login'}
       </button>
     </form>
   );
