@@ -31,6 +31,6 @@
       "@services/*": ["./services/*/src"]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "build", ".next", "coverage"]
+  "include": [],
+  "exclude": ["node_modules", "dist", "build", ".next", "coverage", "**/*.test.ts"]
 }
