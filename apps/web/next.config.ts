@@ -2,14 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   compress: true,
-  optimizePackageImports: [
-    'zustand',
-    'three',
-    '@react-three/fiber',
-    'lucide-react',
-  ],
   webpack: (config, { isServer }) => {
     // WebAssembly support
     config.experiments = {
