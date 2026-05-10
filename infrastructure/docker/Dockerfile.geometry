@@ -1,0 +1,37 @@
+# Multi-stage build for Rust geometry engine
+FROM rust:1.81 as builder
+
+WORKDIR /app
+
+# Copy Cargo files
+COPY services/geometry-engine/Cargo.toml services/geometry-engine/Cargo.lock ./
+
+# Copy source
+COPY services/geometry-engine/src ./src
+
+# Build release binary
+RUN cargo build --release
+
+# Final image
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy binary from builder
+COPY --from=builder /app/target/release/geometry-server .
+
+# Health check
+HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
+    CMD [ "test", "-S", "/tmp/geometry-engine.sock" ] || exit 1
+
+# Expose gRPC port
+EXPOSE 50051
+
+# Run server
+CMD ["./geometry-server"]

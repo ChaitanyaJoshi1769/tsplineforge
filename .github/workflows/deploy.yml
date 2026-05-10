@@ -1,0 +1,78 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f infrastructure/k8s/namespace.yaml
+          kubectl apply -f infrastructure/k8s/configmap.yaml
+          kubectl create secret generic tsplineforge-secrets \
+            --from-literal=database-url="${{ secrets.DATABASE_URL }}" \
+            --from-literal=jwt-secret="${{ secrets.JWT_SECRET }}" \
+            --from-literal=s3-endpoint="${{ secrets.S3_ENDPOINT }}" \
+            --from-literal=s3-access-key="${{ secrets.S3_ACCESS_KEY }}" \
+            --from-literal=s3-secret-key="${{ secrets.S3_SECRET_KEY }}" \
+            --from-literal=postgres-password="${{ secrets.POSTGRES_PASSWORD }}" \
+            -n tsplineforge --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f infrastructure/k8s/statefulset-database.yaml
+          kubectl apply -f infrastructure/k8s/deployment-gateway.yaml
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/gateway -n tsplineforge --timeout=5m
+          kubectl get pods -n tsplineforge
+
+      - name: Run smoke tests
+        run: |
+          echo "Waiting for gateway to be ready..."
+          sleep 30
+          GATEWAY_IP=$(kubectl get service gateway -n tsplineforge -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          curl -f http://${GATEWAY_IP}/health || exit 1
+
+      - name: Notify deployment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Deployment ${{ job.status }} for environment: ${{ github.event.inputs.environment || "staging" }}'
+            })

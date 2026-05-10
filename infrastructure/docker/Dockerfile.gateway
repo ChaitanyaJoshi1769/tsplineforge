@@ -1,0 +1,45 @@
+# Multi-stage build for Node.js gateway
+FROM node:22-alpine as dependencies
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml ./
+COPY services/gateway/package.json services/gateway/
+
+RUN pnpm install --frozen-lockfile
+
+# Builder stage
+FROM node:22-alpine as builder
+
+WORKDIR /app
+
+RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml turbo.json tsconfig.json ./
+COPY services/gateway ./services/gateway
+COPY --from=dependencies /app/node_modules ./node_modules
+
+RUN cd services/gateway && pnpm build
+
+# Production stage
+FROM node:22-alpine
+
+WORKDIR /app
+
+RUN npm install -g pnpm
+
+# Copy only production dependencies
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/services/gateway/dist ./dist
+COPY --from=builder /app/services/gateway/package.json ./
+
+# Health check
+HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+EXPOSE 3000
+
+CMD ["node", "dist/index.js"]

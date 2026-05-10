@@ -1,0 +1,43 @@
+{
+  "name": "@tsplineforge/web",
+  "version": "0.1.0",
+  "description": "TSplineForge web CAD editor",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "15.0.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "tailwindcss": "4.0.0-alpha.20",
+    "zustand": "5.0.0-rc.1",
+    "three": "r170",
+    "@react-three/fiber": "8.17.0",
+    "@react-three/drei": "9.108.0",
+    "immer": "10.0.3",
+    "@tanstack/react-query": "5.28.0",
+    "axios": "1.6.5",
+    "uuid": "9.0.1",
+    "lucide-react": "0.344.0",
+    "clsx": "2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "5.4.5",
+    "@types/react": "18.2.52",
+    "@types/react-dom": "18.2.18",
+    "@types/three": "r170",
+    "@types/node": "20.10.6",
+    "eslint": "9.0.0",
+    "eslint-config-next": "15.0.0",
+    "@typescript-eslint/eslint-plugin": "7.4.0",
+    "@typescript-eslint/parser": "7.4.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -1,0 +1,135 @@
+version: '3.9'
+
+services:
+  # Data Layer
+  postgres:
+    image: postgres:16-alpine
+    container_name: tsplineforge-postgres
+    environment:
+      POSTGRES_USER: tspline
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: tsplineforge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tspline"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: tsplineforge-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: tsplineforge-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: minio server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: tsplineforge-nats
+    ports:
+      - "4222:4222"
+      - "6222:6222"
+      - "8222:8222"
+    command: -js -c /nats/nats.conf
+    volumes:
+      - ./infrastructure/nats/nats.conf:/nats/nats.conf
+      - nats_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Gateway
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+      target: development
+    container_name: tsplineforge-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://tspline:password@postgres:5432/tsplineforge
+      REDIS_URL: redis://redis:6379
+      NATS_URL: nats://nats:4222
+      S3_ENDPOINT: http://minio:9000
+      JWT_SECRET: dev-secret-key
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    volumes:
+      - ./services/gateway/src:/app/src
+    command: npm run dev
+
+  # Monitoring (Optional but recommended)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tsplineforge-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tsplineforge-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  nats_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: tsplineforge

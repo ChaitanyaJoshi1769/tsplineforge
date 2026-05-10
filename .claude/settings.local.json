@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs -I {} find {} -type f \\\\\\( -name \"*.rs\" -o -name \"*.ts\" \\\\\\))",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(git add *)"
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+target/
+Cargo.lock
+
+# Development
+.env.local
+.env.*.local
+*.log
+.DS_Store
+.vscode/settings.json
+
+# Build outputs
+dist/
+build/
+.next/
+.turbo/
+out/
+
+# Testing
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+venv/
+env/
+
+# Docker
+.dockerignore
+
+# Rust
+*.rlib
+*.so
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sensitive
+.env
+.env.production
+secrets.json

@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tsplineforge-config
+  namespace: tsplineforge
+data:
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  GATEWAY_PORT: "3000"
+  GATEWAY_HOST: "0.0.0.0"
+  REDIS_URL: "redis://redis-headless:6379"
+  NATS_URL: "nats://nats:4222"
+  S3_REGION: "us-east-1"
+  GEOMETRY_ENGINE_URL: "grpc://geometry-engine:50051"
+  REMESH_ENGINE_URL: "grpc://remesh-engine:50052"
+  TSPLINE_KERNEL_URL: "grpc://tspline-kernel:50053"
+  SURFACE_FITTING_URL: "grpc://surface-fitting:50054"
+  AI_TOPOLOGY_URL: "http://ai-topology:5001"
+  ENABLE_COLLABORATION: "true"
+  ENABLE_AI_ASSISTANCE: "true"
+  ENABLE_GPU_ACCELERATION: "true"
+  MAX_UPLOAD_SIZE_MB: "500"

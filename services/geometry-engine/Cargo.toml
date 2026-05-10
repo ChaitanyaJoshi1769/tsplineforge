@@ -1,0 +1,75 @@
+[package]
+name = "geometry-engine"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT"
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "geometry-server"
+path = "src/bin/server.rs"
+
+[dependencies]
+# Linear algebra
+nalgebra = "0.33"
+nalgebra-glm = "0.18"
+
+# Data structures
+petgraph = "0.6"
+hashbrown = "0.14"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+tokio-util = "0.7"
+
+# gRPC
+tonic = "0.11"
+prost = "0.12"
+prost-types = "0.12"
+tonic-health = "0.11"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json"] }
+
+# Performance
+rayon = "1.8"
+parking_lot = "0.12"
+
+# File I/O
+nom = "7.1"
+flate2 = "1.0"
+zip = "0.6"
+
+# UUID
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# Geometry
+approx = "0.5"
+
+# Profiling
+pprof = { version = "0.13", features = ["flamegraph"] }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.bench]
+inherits = "release"
