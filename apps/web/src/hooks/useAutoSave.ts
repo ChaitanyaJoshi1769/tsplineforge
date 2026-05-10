@@ -7,11 +7,13 @@ export interface AutoSaveOptions {
   interval?: number; // milliseconds
   enabled?: boolean;
   debounce?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSave?: (data: any) => Promise<void>;
   onError?: (error: Error) => void;
   onSuccess?: () => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useAutoSave(data: any, options: AutoSaveOptions = {}) {
   const {
     interval = 30000, // 30 seconds default

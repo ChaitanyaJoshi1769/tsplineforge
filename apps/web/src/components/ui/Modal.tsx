@@ -3,14 +3,15 @@
 import React, { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-export interface ModalProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: string;
+  title?: React.ReactNode;
   children: React.ReactNode;
   closeOnEscape?: boolean;
   closeOnBackdropClick?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
 }
 
 const Modal = React.forwardRef<HTMLDivElement, ModalProps>(

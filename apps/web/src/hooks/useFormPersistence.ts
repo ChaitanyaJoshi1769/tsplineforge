@@ -12,13 +12,14 @@ export interface FormPersistenceOptions {
 export function useFormPersistence(options: FormPersistenceOptions) {
   const {
     key,
-    debounceMs = 500,
+    debounceMs: _debounceMs = 500, // Future use for debounced saves
     enabled = true,
     version = 1,
   } = options;
 
   const storageKey = `form_${key}_v${version}`;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const saveFormState = useCallback((formData: any) => {
     if (!enabled) return;
 
@@ -69,6 +70,7 @@ export function useFormPersistence(options: FormPersistenceOptions) {
  */
 export function useFormPersistenceWithHook(
   formKey: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   { watch, reset }: any, // react-hook-form methods
   options?: Omit<FormPersistenceOptions, 'key'>,
 ) {

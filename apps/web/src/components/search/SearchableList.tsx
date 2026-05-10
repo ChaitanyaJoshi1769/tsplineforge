@@ -14,6 +14,7 @@ export interface SearchableListProps<T> {
   listClassName?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function SearchableList<T extends Record<string, any>>({
   items,
   searchKeys,
@@ -67,6 +68,7 @@ export function SearchableList<T extends Record<string, any>>({
 /**
  * Hook for debounced search
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useDebouncedSearch<T extends Record<string, any>>(
   query: string,
   items: T[],
