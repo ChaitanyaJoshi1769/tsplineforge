@@ -401,6 +401,38 @@ blockquote {
   border-width: 0;
 }
 
+/* Focus-visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  * {
+    border-width: 1.5px;
+  }
+
+  button {
+    font-weight: 600;
+  }
+}
+
+/* Forced colors mode (high contrast on Windows) */
+@media (forced-colors: active) {
+  * {
+    border-color: CanvasText;
+  }
+
+  button {
+    border: 1px solid;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+}
+
 /* ========== UTILITY CLASSES ========== */
 .container {
   width: 100%;

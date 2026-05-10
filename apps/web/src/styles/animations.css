@@ -571,6 +571,51 @@ html {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Tooltip fade-in animation */
+@keyframes tooltipFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-enter {
+  animation: tooltipFadeIn 150ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* List item stagger animation */
+@keyframes listItemFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.list-item-enter {
+  animation: listItemFade 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Smooth list appearance with stagger */
+.list-stagger > * {
+  opacity: 0;
+  animation: listItemFade 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.list-stagger > *:nth-child(1) { animation-delay: 50ms; }
+.list-stagger > *:nth-child(2) { animation-delay: 100ms; }
+.list-stagger > *:nth-child(3) { animation-delay: 150ms; }
+.list-stagger > *:nth-child(4) { animation-delay: 200ms; }
+.list-stagger > *:nth-child(5) { animation-delay: 250ms; }
+.list-stagger > *:nth-child(n+6) { animation-delay: 300ms; }
+
 /* Skeleton loading */
 .skeleton {
   background: linear-gradient(
@@ -581,6 +626,39 @@ html {
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+/* Badge pulse for notifications */
+@keyframes badgePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+  }
+}
+
+.badge-pulse {
+  animation: badgePulse 2s infinite;
+}
+
+/* Link underline animation */
+@keyframes linkUnderline {
+  from {
+    background-position: right;
+  }
+  to {
+    background-position: left;
+  }
+}
+
+.link-underline {
+  background: linear-gradient(to right, #3b82f6, #3b82f6) no-repeat right bottom 0px / 0 2px;
+  transition: background-position 200ms ease-out;
+}
+
+.link-underline:hover {
+  background-position: left bottom 0px / 100% 2px;
 }
 
 /* Success animation with checkmark pulse */
@@ -691,6 +769,51 @@ select:focus {
 }
 
 /* ========== ACCESSIBILITY & MOTION ========== */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .ripple {
+    animation: none !important;
+  }
+
+  .button-hover:hover:not(:disabled) {
+    animation: none;
+    transform: scale(1);
+  }
+
+  .button-active:active:not(:disabled) {
+    animation: none;
+  }
+
+  .card-hover:hover {
+    animation: none;
+    transform: translateY(-2px);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  button,
+  input,
+  textarea,
+  select {
+    border-width: 2px;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   ::-webkit-scrollbar-thumb {
     background: #444444;
