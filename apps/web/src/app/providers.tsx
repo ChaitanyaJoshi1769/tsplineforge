@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { ToastProvider } from '@/context/toast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { CommandPaletteProvider } from '@/components/providers/CommandPaletteProvider';
+import { ServiceWorkerManager } from '@/components/ServiceWorkerManager';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +25,7 @@ export function Providers({ children }: { children: ReactNode }) {
         <AuthProvider>
           <ToastProvider>
             <CommandPaletteProvider>
+              <ServiceWorkerManager />
               {children}
               <ToastContainer />
             </CommandPaletteProvider>
