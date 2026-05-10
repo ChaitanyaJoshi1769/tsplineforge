@@ -244,7 +244,7 @@ export function validateExportOptions(options: ExportOptions): ValidationResult 
   // Validate filename
   if (!options.filename || options.filename.trim() === '') {
     errors.push('Filename is required');
-  } else if (!/^[a-zA-Z0-9_\-\.]+$/.test(options.filename)) {
+  } else if (!/^[a-zA-Z0-9_.-]+$/.test(options.filename)) {
     errors.push('Filename contains invalid characters');
   }
 

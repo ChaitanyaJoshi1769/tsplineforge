@@ -4,7 +4,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { ExportHistoryManager, ExportHistoryEntry, getRelativeTime } from '@/lib/exportHistory';
-import { ExportFormat } from '@/lib/exportOptions';
+import { ExportFormat, ExportOptions } from '@/lib/exportOptions';
 
 export interface UseExportHistoryReturn {
   history: ExportHistoryEntry[];
@@ -12,7 +12,7 @@ export interface UseExportHistoryReturn {
   addEntry: (
     filename: string,
     format: ExportFormat,
-    options: any,
+    options: Record<string, unknown>,
     fileSize?: number,
     errorMessage?: string
   ) => ExportHistoryEntry;
@@ -54,11 +54,17 @@ export function useExportHistory(): UseExportHistoryReturn {
     (
       filename: string,
       format: ExportFormat,
-      options: any,
+      options: Record<string, unknown>,
       fileSize?: number,
       errorMessage?: string
     ): ExportHistoryEntry => {
-      const entry = ExportHistoryManager.addEntry(filename, format, options, fileSize, errorMessage);
+      const entry = ExportHistoryManager.addEntry(
+        filename,
+        format,
+        options as unknown as ExportOptions,
+        fileSize,
+        errorMessage
+      );
       refreshHistory();
       return entry;
     },

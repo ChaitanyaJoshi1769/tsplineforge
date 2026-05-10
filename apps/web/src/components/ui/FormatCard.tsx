@@ -27,7 +27,7 @@ export interface FormatCardProps {
 function CapabilityBadge({
   label,
   supported,
-  icon: Icon,
+  icon,
 }: {
   label: string;
   supported: boolean;
@@ -41,7 +41,7 @@ function CapabilityBadge({
           : 'bg-slate-800/30 text-slate-400'
       }`}
     >
-      {Icon}
+      {icon}
       <span>{label}</span>
     </div>
   );
@@ -51,7 +51,7 @@ function CapabilityBadge({
  * Format Card Component
  */
 export function FormatCard({
-  format,
+  format: _unused,
   name,
   description,
   extensions,
@@ -61,6 +61,7 @@ export function FormatCard({
   onClick,
   disabled = false,
 }: FormatCardProps) {
+  // Note: format is part of props but not used in rendering (used for key in parent component)
   const [isHovering, setIsHovering] = useState(false);
 
   return (

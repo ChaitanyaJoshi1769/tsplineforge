@@ -21,6 +21,7 @@ import {
   getFullFilename,
   ExportOptions,
 } from '@/lib/exportOptions';
+import { ExportHistoryEntry } from '@/lib/exportHistory';
 
 export interface AdvancedExportDialogProps {
   scene: THREE.Scene | null;
@@ -61,6 +62,8 @@ export function AdvancedExportDialog({
   defaultFilename = 'model',
   isExporting = false,
 }: AdvancedExportDialogProps) {
+  // isExporting is accepted for backward compatibility but not used in this component
+  void isExporting;
   // Hooks
   const { statistics, isLoading: statsLoading } = useMeshStatistics(scene);
   const { options, validation, setFormat, setFilename, updateOption } = useExportOptions(
@@ -105,7 +108,7 @@ export function AdvancedExportDialog({
       addEntry(
         options.filename,
         options.format,
-        options,
+        options as unknown as Record<string, unknown>,
         undefined,
         undefined
       );
@@ -120,7 +123,7 @@ export function AdvancedExportDialog({
       addEntry(
         options.filename,
         options.format,
-        options,
+        options as unknown as Record<string, unknown>,
         undefined,
         errorMessage
       );
@@ -130,7 +133,7 @@ export function AdvancedExportDialog({
   }, [options, validation, onExport, onClose, addEntry]);
 
   // Handle re-export from history
-  const handleReexport = useCallback(async (entry: any) => {
+  const handleReexport = useCallback(async (entry: ExportHistoryEntry) => {
     // This would reload the previous export settings and re-export
     // For now, we'll just copy the filename
     setFilename(entry.filename);

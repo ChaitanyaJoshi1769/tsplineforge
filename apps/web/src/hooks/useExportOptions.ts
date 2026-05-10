@@ -7,11 +7,6 @@ import {
   ExportFormat,
   ExportOptions,
   UnitSystem,
-  STEPExportOptions,
-  IGESExportOptions,
-  STLExportOptions,
-  GLTFExportOptions,
-  OBJExportOptions,
   getDefaultExportOptions,
   validateExportOptions,
   ValidationResult,
@@ -102,28 +97,6 @@ export function useExportOptions(initialFormat: ExportFormat = 'stl', initialFil
     return `${options.filename}${ext}`;
   }, [options.filename, options.format]);
 
-  // Format-specific update helpers
-  const updateSTEPOption = useCallback(
-    <K extends keyof STEPExportOptions>(key: K, value: STEPExportOptions[K]) => {
-      updateOption(key, value);
-    },
-    [updateOption]
-  );
-
-  const updateSTLOption = useCallback(
-    <K extends keyof STLExportOptions>(key: K, value: STLExportOptions[K]) => {
-      updateOption(key, value);
-    },
-    [updateOption]
-  );
-
-  const updateGLTFOption = useCallback(
-    <K extends keyof GLTFExportOptions>(key: K, value: GLTFExportOptions[K]) => {
-      updateOption(key, value);
-    },
-    [updateOption]
-  );
-
   // Return typed interface
   const result: UseExportOptionsReturn = {
     options,
@@ -137,29 +110,4 @@ export function useExportOptions(initialFormat: ExportFormat = 'stl', initialFil
   };
 
   return result;
-}
-
-/**
- * Hook to manage format-specific options
- */
-export function useFormatOptions(format: ExportFormat) {
-  const [stepVariant, setStepVariant] = useState<'AP203' | 'AP214'>('AP203');
-  const [tolerance, setTolerance] = useState(0.01);
-  const [stlFormat, setStlFormat] = useState<'binary' | 'ascii'>('binary');
-  const [compressed, setCompressed] = useState(false);
-
-  return {
-    // STEP
-    stepVariant,
-    setStepVariant,
-    // Common
-    tolerance,
-    setTolerance,
-    // STL
-    stlFormat,
-    setStlFormat,
-    // GLTF
-    compressed,
-    setCompressed,
-  };
 }

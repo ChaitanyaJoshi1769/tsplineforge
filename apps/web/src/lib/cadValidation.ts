@@ -30,8 +30,8 @@ export function validateGeometry(scene: THREE.Scene): GeometryValidation {
     obj: { compatible: true, issues: [] },
   };
 
+  const geometryIssues: string[] = [];
   let hasGeometry = false;
-  let geometryIssues: string[] = [];
 
   scene.traverse((object) => {
     if (object instanceof THREE.Mesh && object.geometry) {
@@ -101,11 +101,6 @@ export function validateGeometry(scene: THREE.Scene): GeometryValidation {
 
   if (geometryIssues.length > 0) {
     errors.push(...geometryIssues);
-  }
-
-  // Update format compatibility based on issues
-  if (hasTransparency) {
-    formatCompatibility.stl.compatible = false;
   }
 
   // Determine overall validity

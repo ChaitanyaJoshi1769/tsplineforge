@@ -8,11 +8,11 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import {
-  ExportFormat,
   ExportOptions,
   STEPExportOptions,
   STLExportOptions,
   GLTFExportOptions,
+  IGESExportOptions,
   UnitSystem,
 } from '@/lib/exportOptions';
 
@@ -356,14 +356,17 @@ function GLTFOptions({
 export function ExportOptionsPanel({
   options,
   onChange,
-  disabled = false,
   compact = false,
 }: ExportOptionsPanelProps) {
+  // Note: 'disabled' is accepted in props but not currently used (reserved for future use)
   return (
     <CollapsibleSection title="Format-Specific Options" defaultOpen={!compact}>
       <div className="space-y-4">
         {options.format === 'step' && (
-          <STEPOptions options={options as STEPExportOptions} onChange={onChange} />
+          <STEPOptions
+            options={options as STEPExportOptions}
+            onChange={onChange as <K extends keyof STEPExportOptions>(key: K, value: STEPExportOptions[K]) => void}
+          />
         )}
 
         {options.format === 'iges' && (
@@ -381,8 +384,8 @@ export function ExportOptionsPanel({
             />
             <NumberInput
               label="Tolerance"
-              value={(options as any).tolerance}
-              onChange={(value) => onChange('tolerance', value)}
+              value={(options as unknown as Record<string, unknown>).tolerance as number}
+              onChange={(value) => (onChange as <K extends keyof IGESExportOptions>(key: K, value: IGESExportOptions[K]) => void)('tolerance', value)}
               min={0.001}
               max={1}
               step={0.001}
@@ -393,11 +396,17 @@ export function ExportOptionsPanel({
         )}
 
         {options.format === 'stl' && (
-          <STLOptions options={options as STLExportOptions} onChange={onChange} />
+          <STLOptions
+            options={options as STLExportOptions}
+            onChange={onChange as <K extends keyof STLExportOptions>(key: K, value: STLExportOptions[K]) => void}
+          />
         )}
 
         {options.format === 'gltf' && (
-          <GLTFOptions options={options as GLTFExportOptions} onChange={onChange} />
+          <GLTFOptions
+            options={options as GLTFExportOptions}
+            onChange={onChange as <K extends keyof GLTFExportOptions>(key: K, value: GLTFExportOptions[K]) => void}
+          />
         )}
 
         {options.format === 'obj' && (
@@ -415,8 +424,8 @@ export function ExportOptionsPanel({
             />
             <ToggleSwitch
               label="Include Materials"
-              checked={(options as any).includeMaterials}
-              onChange={(value) => onChange('includeMaterials', value)}
+              checked={(options as unknown as Record<string, unknown>).includeMaterials as boolean}
+              onChange={(value) => (onChange as (key: 'includeMaterials', value: boolean) => void)('includeMaterials', value)}
               hint="Export .mtl file with material definitions"
             />
           </div>

@@ -6,9 +6,8 @@
  */
 
 import React, { useState } from 'react';
-import { ChevronDown, Trash2, Download, RotateCw, Search, Trash } from 'lucide-react';
+import { ChevronDown, Trash2, RotateCw, Search, Trash } from 'lucide-react';
 import { ExportHistoryEntry, getRelativeTime, formatFileSize } from '@/lib/exportHistory';
-import { FORMAT_INFO } from '@/lib/exportOptions';
 
 export interface ExportHistoryPanelProps {
   history: ExportHistoryEntry[];

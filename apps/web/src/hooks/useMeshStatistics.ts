@@ -57,25 +57,8 @@ export function useMeshStatistics(scene: THREE.Scene | null): UseMeshStatisticsR
     calculateStats();
   }, [scene, calculateStats]);
 
-  // Listen for scene changes (geometry updates)
-  useEffect(() => {
-    if (!scene) return;
-
-    const handleSceneChange = () => {
-      calculateStats();
-    };
-
-    // Listen for geometry changes on child objects
-    const onChildAdded = () => {
-      calculateStats();
-    };
-
-    scene.addEventListener('added' as any, onChildAdded);
-
-    return () => {
-      scene.removeEventListener('added' as any, onChildAdded);
-    };
-  }, [scene, calculateStats]);
+  // Note: Statistics are calculated automatically when scene changes (via the first useEffect dependency)
+  // Additional real-time updates could be added here if needed with Three.js event listeners
 
   return {
     statistics,

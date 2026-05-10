@@ -36,16 +36,14 @@ export function calculateMeshStatistics(scene: THREE.Scene): MeshStatistics {
   let surfaceArea = 0;
   let volume = 0;
   let hasMaterials = false;
-  let materialCount = new Set<THREE.Material>();
+  const materialCount = new Set<THREE.Material>();
   let hasAnimations = false;
 
   const bounds = new THREE.Box3();
-  let hasGeometry = false;
 
   // Traverse all meshes in the scene
   scene.traverse((object) => {
     if (object instanceof THREE.Mesh && object.geometry) {
-      hasGeometry = true;
       bounds.expandByObject(object);
 
       // Count vertices
@@ -78,13 +76,13 @@ export function calculateMeshStatistics(scene: THREE.Scene): MeshStatistics {
     }
 
     // Check for animations
-    if ((object as any).animations && (object as any).animations.length > 0) {
+    const objWithAnimations = object as { animations?: unknown[] };
+    if (objWithAnimations.animations && Array.isArray(objWithAnimations.animations) && objWithAnimations.animations.length > 0) {
       hasAnimations = true;
     }
   });
 
   // Calculate bounds dimensions
-  const size = bounds.getSize(new THREE.Vector3());
   const bSize = bounds.getSize(new THREE.Vector3());
 
   // Calculate if manifold (simple heuristic: closed mesh with consistent normals)
@@ -141,9 +139,9 @@ export function calculateSurfaceArea(mesh: THREE.Mesh): number {
       const b = indices[i + 1] * 3;
       const c = indices[i + 2] * 3;
 
-      v0.fromArray(positions as number[], a);
-      v1.fromArray(positions as number[], b);
-      v2.fromArray(positions as number[], c);
+      v0.fromArray(positions as Float32Array | number[], a);
+      v1.fromArray(positions as Float32Array | number[], b);
+      v2.fromArray(positions as Float32Array | number[], c);
 
       // Calculate triangle area using cross product
       const edge1 = new THREE.Vector3().subVectors(v1, v0);
@@ -214,15 +212,15 @@ export function calculateMeshVolume(mesh: THREE.Mesh): number {
   const v2 = new THREE.Vector3();
 
   if (index) {
-    const indices = index.array as ArrayLike<number>;
+    const indices = index.array as Uint32Array | Uint16Array;
     for (let i = 0; i < indices.length; i += 3) {
       const a = indices[i] * 3;
       const b = indices[i + 1] * 3;
       const c = indices[i + 2] * 3;
 
-      v0.fromArray(positions as number[], a);
-      v1.fromArray(positions as number[], b);
-      v2.fromArray(positions as number[], c);
+      v0.fromArray(positions as Float32Array | number[], a);
+      v1.fromArray(positions as Float32Array | number[], b);
+      v2.fromArray(positions as Float32Array | number[], c);
 
       volume += signedVolume(v0, v1, v2);
     }

@@ -6,6 +6,7 @@ import { AdvancedExportDialog } from './AdvancedExportDialog';
 import { Button } from '@/components/ui/Button';
 import { useExport } from '@/hooks/useExport';
 import { ExportFormat, ExportOptions } from '@/lib/exportOptions';
+import type { ExportOptions as LegacyExportOptions } from '@/lib/exporters';
 
 interface ExportButtonProps {
   scene?: THREE.Object3D;
@@ -21,9 +22,10 @@ export function ExportButton({ scene, projectName = 'model', className }: Export
     if (!scene) return;
 
     // Convert the new ExportOptions to the old format for backward compatibility
-    const legacyOptions = {
-      format,
-      binary: format === 'stl' ? ((options as any).stlFormat === 'binary') : true,
+    const stlFormat = (options as unknown as Record<string, unknown>).stlFormat === 'binary' ? 'binary' : 'ascii';
+    const legacyOptions: LegacyExportOptions = {
+      format: (format === 'step' || format === 'iges' ? 'stl' : format) as 'stl' | 'glb' | 'gltf' | 'obj',
+      binary: format === 'stl' ? (stlFormat === 'binary') : true,
     };
 
     await performExport(scene, filename, legacyOptions);
