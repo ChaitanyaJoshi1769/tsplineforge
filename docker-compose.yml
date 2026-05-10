@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # Data Layer
   postgres:
@@ -73,7 +71,7 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: services/gateway/Dockerfile
+      dockerfile: infrastructure/docker/Dockerfile.gateway
       target: development
     container_name: tsplineforge-gateway
     ports:
