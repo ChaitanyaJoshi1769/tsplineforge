@@ -110,8 +110,9 @@ const SidebarItem = React.forwardRef<HTMLButtonElement, SidebarItemProps>(
     <button
       ref={ref}
       className={cn(
-        'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg',
+        'w-full flex items-center gap-3 px-3 py-3 md:py-2.5 rounded-lg',
         'text-sm font-medium transition-all duration-150',
+        'min-h-[44px] md:min-h-auto',
         active
           ? 'bg-primary/10 text-primary'
           : 'text-muted hover:text-foreground hover:bg-card-hover',
@@ -120,7 +121,7 @@ const SidebarItem = React.forwardRef<HTMLButtonElement, SidebarItemProps>(
       type="button"
       {...props}
     >
-      {icon && <span className="flex-shrink-0 flex items-center">{icon}</span>}
+      {icon && <span className="flex-shrink-0 flex items-center text-base md:text-lg">{icon}</span>}
       <span className="flex-1 text-left">{children}</span>
     </button>
   ),

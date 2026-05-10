@@ -155,10 +155,10 @@ export default function Dashboard() {
         <Header
           title={
             <div className="text-center">
-              <h1 className="text-2xl font-semibold text-foreground">
+              <h1 className="text-xl md:text-2xl font-semibold text-foreground">
                 Welcome back, {user.email.split('@')[0]}
               </h1>
-              <p className="text-sm text-muted">Manage your T-Spline projects</p>
+              <p className="text-xs md:text-sm text-muted">Manage your T-Spline projects</p>
             </div>
           }
           rightContent={
@@ -168,6 +168,7 @@ export default function Dashboard() {
                 variant="secondary"
                 size="sm"
                 onClick={() => {}}
+                className="hidden sm:inline-flex"
               >
                 ⬆ Upload
               </Button>
@@ -176,18 +177,19 @@ export default function Dashboard() {
                 size="sm"
                 onClick={() => router.push('/editor')}
               >
-                ✏️ New Project
+                <span className="hidden sm:inline">✏️ New Project</span>
+                <span className="sm:hidden">✏️ New</span>
               </Button>
             </div>
           }
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto px-8 py-8">
+        <main className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-8">
           {/* Filter Bar */}
-          <div className="mb-8 space-y-4">
-            <div className="flex gap-4 flex-col md:flex-row md:items-end">
-              <div className="flex-1">
+          <div className="mb-6 md:mb-8 space-y-3 md:space-y-4">
+            <div className="flex gap-3 md:gap-4 flex-col md:flex-row md:items-end">
+              <div className="flex-1 min-w-0">
                 <Input
                   label="Search projects"
                   placeholder="Find a project..."
@@ -197,11 +199,12 @@ export default function Dashboard() {
                   icon="🔍"
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap md:flex-nowrap">
                 <Button
                   variant={sortBy === 'newest' ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setSortBy('newest')}
+                  className="flex-1 md:flex-none text-xs md:text-sm"
                 >
                   Newest
                 </Button>
@@ -209,6 +212,7 @@ export default function Dashboard() {
                   variant={sortBy === 'oldest' ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setSortBy('oldest')}
+                  className="flex-1 md:flex-none text-xs md:text-sm"
                 >
                   Oldest
                 </Button>
@@ -216,6 +220,7 @@ export default function Dashboard() {
                   variant={sortBy === 'name' ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setSortBy('name')}
+                  className="flex-1 md:flex-none text-xs md:text-sm"
                 >
                   Name
                 </Button>

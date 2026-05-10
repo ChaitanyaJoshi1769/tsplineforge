@@ -136,8 +136,8 @@ export default function EditorPage() {
 
       {/* Main Editor Layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Toolbar */}
-        <div className="w-56 border-r border-border bg-card/30 p-4 overflow-y-auto space-y-2">
+        {/* Left Toolbar - Hidden on mobile */}
+        <div className="hidden md:flex md:w-56 border-r border-border bg-card/30 p-4 overflow-y-auto space-y-2">
           <div className="mb-4">
             <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-3 px-2">
               Tools
@@ -164,9 +164,9 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Right Sidebar - Properties or AI */}
-        <div className={`border-l border-border bg-card/30 overflow-y-auto transition-all duration-300 ${
-          showAIAssistant ? 'w-96' : 'w-80'
+        {/* Right Sidebar - Properties or AI - Hidden on mobile */}
+        <div className={`hidden lg:flex lg:flex-col border-l border-border bg-card/30 overflow-y-auto transition-all duration-300 ${
+          showAIAssistant ? 'lg:w-96' : 'lg:w-80'
         }`}>
           {showAIAssistant ? (
             <div className="h-full flex flex-col">
