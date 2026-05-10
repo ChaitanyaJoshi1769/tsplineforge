@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import { Badge } from '@/components/ui/Badge';
 import { Separator } from '@/components/ui/Separator';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { ArrowLeft, Sparkles, Save, Download } from 'lucide-react';
 import * as THREE from 'three';
 
@@ -100,6 +101,7 @@ export default function EditorPage() {
         }
         rightContent={
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button
               variant="secondary"
               size="sm"

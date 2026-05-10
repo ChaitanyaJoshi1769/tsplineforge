@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -10,6 +10,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
+  enableRipple?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -22,12 +23,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       leftIcon,
       rightIcon,
       fullWidth,
+      enableRipple = true,
       children,
       disabled,
+      onClick,
       ...props
     },
     ref,
   ) => {
+    const buttonRef = useRef<HTMLButtonElement>(null);
+
     const variantClasses = {
       primary:
         'bg-primary hover:bg-primary-600 text-white shadow-md hover:shadow-lg active:bg-primary-700',
@@ -47,10 +52,31 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       lg: 'px-6 py-3 text-lg gap-2.5',
     };
 
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (enableRipple && buttonRef.current && !disabled && !isLoading) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.style.transform = `translate(-50%, -50%)`;
+
+        buttonRef.current.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
+      }
+
+      onClick?.(e);
+    };
+
     return (
       <button
+        ref={ref || buttonRef}
         className={cn(
-          'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 ease-smooth disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+          'relative inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 ease-smooth disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary overflow-hidden button-hover button-active',
           variantClasses[variant],
           sizeClasses[size],
           fullWidth && 'w-full',
@@ -58,7 +84,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className,
         )}
         disabled={disabled || isLoading}
-        ref={ref}
+        onClick={handleClick}
         {...props}
       >
         {isLoading ? (

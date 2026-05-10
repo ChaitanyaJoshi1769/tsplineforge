@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { formatRelativeTime } from '@/lib/utils';
 
 interface Project {
@@ -161,7 +162,8 @@ export default function Dashboard() {
             </div>
           }
           rightContent={
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <ThemeToggle />
               <Button
                 variant="secondary"
                 size="sm"

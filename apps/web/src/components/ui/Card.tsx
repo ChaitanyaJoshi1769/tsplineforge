@@ -25,7 +25,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           border && 'border border-border',
           shadowClasses[shadow],
           interactive &&
-            'hover:bg-card-hover hover:shadow-lg hover:-translate-y-1 cursor-pointer',
+            'hover:bg-card-hover hover:shadow-lg hover:-translate-y-1 cursor-pointer card-hover',
           className,
         )}
         ref={ref}

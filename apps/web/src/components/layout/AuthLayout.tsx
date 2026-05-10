@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 export interface AuthLayoutProps extends React.HTMLAttributes<HTMLDivElement> {
   logo?: React.ReactNode;
@@ -18,11 +19,16 @@ const AuthLayout = React.forwardRef<HTMLDivElement, AuthLayoutProps>(
         className={cn(
           'min-h-screen bg-gradient-to-br from-background via-background to-subtle',
           'flex flex-col items-center justify-center',
-          'px-4 py-8',
+          'px-4 py-8 relative',
           className,
         )}
         {...props}
       >
+        {/* Theme Toggle - Floating Button */}
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
         <div className="w-full max-w-md">
           {/* Logo & Branding */}
           <div className="text-center mb-8 animate-fadeIn">
