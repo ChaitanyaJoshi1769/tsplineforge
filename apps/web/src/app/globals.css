@@ -1,59 +1,165 @@
+@import '../styles/animations.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   TSplineForge Global Styles
+   ======================================== */
+
+/* ========== RESET & BASE STYLES ========== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background-color: #0f0f0f;
   color: #f5f5f5;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
   overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ========== TYPOGRAPHY BASE ========== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
 }
 
-::-webkit-scrollbar-track {
-  background: #1a1a1a;
+h1 {
+  font-size: 48px;
+  letter-spacing: -0.03em;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #444444;
+h2 {
+  font-size: 36px;
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+}
+
+h4 {
+  font-size: 24px;
+  letter-spacing: -0.01em;
+}
+
+h5 {
+  font-size: 18px;
+}
+
+h6 {
+  font-size: 16px;
+}
+
+p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Small text */
+small {
+  font-size: 12px;
+  color: #71717a;
+}
+
+/* Code typography */
+code,
+pre {
+  font-family: 'Fira Code', Monaco, 'Courier New', monospace;
+  font-size: 13px;
+}
+
+code {
+  background-color: #27272a;
+  color: #e4e4e7;
+  padding: 2px 6px;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #555555;
+pre {
+  background-color: #1a1a1a;
+  color: #e4e4e7;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #333333;
+  overflow-x: auto;
 }
 
-/* Selection */
-::selection {
-  background-color: #3b82f6;
-  color: #f5f5f5;
+pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
 }
 
-/* Input styling */
+/* ========== LINK STYLING ========== */
+a {
+  color: #3b82f6;
+  text-decoration: none;
+  transition: color 200ms ease-out;
+}
+
+a:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+a:active {
+  color: #2563eb;
+}
+
+a:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ========== FORM ELEMENTS ========== */
 input,
 textarea,
 select {
   background-color: #1a1a1a;
   color: #f5f5f5;
   border: 1px solid #333333;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 8px 12px;
   font-size: 14px;
+  font-family: inherit;
+  transition: all 200ms ease-out;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #71717a;
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: #444444;
 }
 
 input:focus,
@@ -61,52 +167,250 @@ textarea:focus,
 select:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Button styling */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: #0f0f0f;
+  color: #71717a;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ========== BUTTON BASE STYLING ========== */
 button {
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
+  font-family: inherit;
+  transition: all 200ms ease-out;
+  border: none;
+  padding: 0.5rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Canvas */
+button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ========== SCROLLBAR STYLING ========== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444444;
+  border-radius: 4px;
+  transition: background 200ms ease-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: #444444 transparent;
+  scrollbar-width: thin;
+}
+
+/* ========== SELECTION STYLING ========== */
+::selection {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+/* ========== TABLE STYLING ========== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #1a1a1a;
+  color: #f5f5f5;
+  font-weight: 600;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #333333;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #333333;
+}
+
+tbody tr:hover {
+  background-color: #242424;
+}
+
+/* ========== LIST STYLING ========== */
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ========== IMAGE & MEDIA ========== */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 canvas {
   display: block;
 }
 
-/* Panel animations */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
+svg {
+  display: block;
+}
+
+/* ========== HORIZONTAL RULE ========== */
+hr {
+  border: none;
+  border-top: 1px solid #333333;
+  margin: 1rem 0;
+}
+
+/* ========== BLOCKQUOTE ========== */
+blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #71717a;
+  font-style: italic;
+}
+
+/* ========== ACCESSIBILITY ========== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ========== UTILITY CLASSES ========== */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Smooth gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+}
+
+.gradient-dark {
+  background: linear-gradient(135deg, #1a1a1a, #27272a);
+}
+
+/* Text utilities */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ========== PRINT STYLES ========== */
+@media print {
+  body {
+    background: white;
+    color: black;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+
+  * {
+    animation: none !important;
+    transition: none !important;
+    background: white !important;
+    color: black !important;
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+/* ========== DARK MODE ADJUSTMENTS ========== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
   }
 }
 
-.animate-slide-in {
-  animation: slideIn 0.3s ease-out;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+/* ========== REDUCED MOTION ========== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

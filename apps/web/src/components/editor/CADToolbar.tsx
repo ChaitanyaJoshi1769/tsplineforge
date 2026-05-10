@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { Separator } from '@/components/ui/Separator';
 import {
   Maximize2,
   Move3D,
@@ -16,7 +18,7 @@ import {
 interface Tool {
   id: string;
   label: string;
-  icon: React.ComponentType<{ size: number }>;
+  icon: React.ComponentType<{ size: string | number }>;
   shortcut?: string;
   onClick: () => void;
 }
@@ -75,84 +77,93 @@ export function CADToolbar({ tools = [], onToolSelect }: CADToolbarProps) {
     onToolSelect?.(toolId);
   };
 
+  const ToolButton = ({ tool }: { tool: Tool }) => (
+    <Tooltip content={`${tool.label}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}>
+      <button
+        onClick={() => handleToolClick(tool.id, tool)}
+        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group ${
+          selectedTool === tool.id
+            ? 'bg-primary/15 text-primary border border-primary/30'
+            : 'text-foreground hover:bg-card-hover border border-transparent'
+        }`}
+        title={`${tool.label}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}
+      >
+        <div className="flex-shrink-0">
+          <tool.icon size={18} />
+        </div>
+        <span className="text-sm font-medium flex-1">{tool.label}</span>
+        {tool.shortcut && (
+          <span className="text-xs text-muted group-hover:text-foreground/60 transition-colors">
+            {tool.shortcut}
+          </span>
+        )}
+      </button>
+    </Tooltip>
+  );
+
   return (
-    <div className="flex flex-col gap-2 bg-card rounded-lg border border-border p-3">
+    <div className="flex flex-col gap-1 space-y-0.5">
       {/* Transform Tools */}
-      <div className="space-y-2">
-        <div className="text-xs font-semibold text-muted-foreground uppercase px-2">
+      <div className="space-y-1">
+        <div className="text-xs font-semibold text-muted uppercase tracking-wider px-2 py-1">
           Transform
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           {allTools.slice(0, 3).map((tool) => (
-            <button
-              key={tool.id}
-              onClick={() => handleToolClick(tool.id, tool)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                selectedTool === tool.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background hover:bg-background/80 text-foreground'
-              }`}
-              title={`${tool.label} (${tool.shortcut})`}
-            >
-              <tool.icon size={16} />
-              <span>{tool.label}</span>
-              {tool.shortcut && (
-                <span className="ml-auto text-xs text-muted-foreground">{tool.shortcut}</span>
-              )}
-            </button>
+            <ToolButton key={tool.id} tool={tool} />
           ))}
         </div>
       </div>
+
+      <Separator />
 
       {/* Edit Tools */}
-      <div className="border-t border-border pt-2 mt-2">
-        <div className="text-xs font-semibold text-muted-foreground uppercase px-2 mb-2">
+      <div className="space-y-1">
+        <div className="text-xs font-semibold text-muted uppercase tracking-wider px-2 py-1">
           Edit
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           {allTools.slice(3, 5).map((tool) => (
-            <button
-              key={tool.id}
-              onClick={() => handleToolClick(tool.id, tool)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                selectedTool === tool.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background hover:bg-background/80 text-foreground'
-              }`}
-              title={`${tool.label} (${tool.shortcut})`}
-            >
-              <tool.icon size={16} />
-              <span>{tool.label}</span>
-            </button>
+            <ToolButton key={tool.id} tool={tool} />
           ))}
         </div>
       </div>
 
+      <Separator />
+
       {/* File Tools */}
-      <div className="border-t border-border pt-2 mt-2">
-        <div className="text-xs font-semibold text-muted-foreground uppercase px-2 mb-2">
+      <div className="space-y-1">
+        <div className="text-xs font-semibold text-muted uppercase tracking-wider px-2 py-1">
           File
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button className="flex items-center justify-center gap-1 px-2 py-2 rounded-md bg-background hover:bg-background/80 text-foreground text-sm font-medium transition-colors" title="Export">
-            <Download size={14} />
-          </button>
-          <button className="flex items-center justify-center gap-1 px-2 py-2 rounded-md bg-background hover:bg-background/80 text-foreground text-sm font-medium transition-colors" title="Import">
-            <Upload size={14} />
-          </button>
+        <div className="grid grid-cols-2 gap-1">
+          <Tooltip content="Export">
+            <button className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-lg bg-card-hover hover:bg-card border border-border text-foreground transition-colors" title="Export">
+              <Download size={16} />
+            </button>
+          </Tooltip>
+          <Tooltip content="Import">
+            <button className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-lg bg-card-hover hover:bg-card border border-border text-foreground transition-colors" title="Import">
+              <Upload size={16} />
+            </button>
+          </Tooltip>
         </div>
       </div>
 
+      <Separator />
+
       {/* History Tools */}
-      <div className="border-t border-border pt-2 mt-2">
-        <div className="grid grid-cols-2 gap-2">
-          <button className="flex items-center justify-center gap-1 px-2 py-2 rounded-md bg-background hover:bg-background/80 text-foreground text-sm font-medium transition-colors" title="Undo">
-            <Undo2 size={14} />
+      <div className="grid grid-cols-2 gap-1">
+        <Tooltip content="Undo (Ctrl+Z)">
+          <button className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-lg bg-card-hover hover:bg-card border border-border text-foreground transition-colors" title="Undo">
+            <Undo2 size={16} />
           </button>
-          <button className="flex items-center justify-center gap-1 px-2 py-2 rounded-md bg-background hover:bg-background/80 text-foreground text-sm font-medium transition-colors" title="Redo">
-            <Redo2 size={14} />
+        </Tooltip>
+        <Tooltip content="Redo (Ctrl+Y)">
+          <button className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-lg bg-card-hover hover:bg-card border border-border text-foreground transition-colors" title="Redo">
+            <Redo2 size={16} />
           </button>
-        </div>
+        </Tooltip>
       </div>
     </div>
   );

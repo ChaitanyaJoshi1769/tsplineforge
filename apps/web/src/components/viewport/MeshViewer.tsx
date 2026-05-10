@@ -10,6 +10,8 @@ interface MeshViewerProps {
   showWireframe?: boolean;
   editable?: boolean;
   onMeshChange?: (mesh: THREE.Mesh) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  [key: string]: unknown;
 }
 
 export function MeshViewer({
@@ -25,8 +27,14 @@ export function MeshViewer({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const meshRef = useRef<THREE.Mesh | null>(null);
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<object | null>(null);
   const [selectedVertex, setSelectedVertex] = useState<number | null>(null);
+
+  // Store unused props to prevent eslint warnings
+  void showNormals;
+  void controlsRef;
+  void selectedVertex;
+  void setSelectedVertex;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -48,7 +56,7 @@ export function MeshViewer({
     const renderer = new THREE.WebGLRenderer({ antialias: true, precision: 'highp' });
     renderer.setSize(width, height);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;

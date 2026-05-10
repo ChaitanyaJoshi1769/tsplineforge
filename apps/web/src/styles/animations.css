@@ -1,0 +1,451 @@
+/* ========================================
+   TSplineForge Animations & Transitions
+   ======================================== */
+
+/* ========== GLOBAL TRANSITIONS ========== */
+* {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fast transitions for hover/focus states */
+.transition-fast {
+  transition-duration: 150ms;
+}
+
+/* Standard transitions (default) */
+.transition,
+.transition-standard {
+  transition-duration: 300ms;
+}
+
+/* Slow transitions for complex animations */
+.transition-slow {
+  transition-duration: 500ms;
+}
+
+/* ========== ENTRANCE ANIMATIONS ========== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes expandHeight {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: auto;
+    opacity: 1;
+  }
+}
+
+/* ========== LOADING ANIMATIONS ========== */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  -100% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* Subtle bounce for indicators */
+@keyframes bounceSubtle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/* ========== INTERACTIVE ANIMATIONS ========== */
+@keyframes buttonPress {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-1deg);
+  }
+  75% {
+    transform: rotate(1deg);
+  }
+}
+
+/* ========== STATE CHANGE ANIMATIONS ========== */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fillColor {
+  from {
+    fill: transparent;
+    stroke: currentColor;
+  }
+  to {
+    fill: currentColor;
+    stroke: currentColor;
+  }
+}
+
+/* ========== FOCUS & ACCESSIBILITY ========== */
+.focus-visible:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Glow effect on focus */
+.focus-glow:focus-visible {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  outline: none;
+}
+
+/* ========== UTILITY CLASSES ========== */
+
+/* Smooth color transitions */
+.smooth-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Smooth shadow transitions */
+.smooth-shadow {
+  transition-property: box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Smooth transform transitions */
+.smooth-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Disabled state animation */
+.disabled,
+[disabled],
+:disabled {
+  animation: fadeDisabled 300ms ease-out forwards;
+}
+
+@keyframes fadeDisabled {
+  to {
+    opacity: 0.6;
+  }
+}
+
+/* ========== RESPONSIVE ANIMATIONS ========== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========== SCROLLBAR ANIMATIONS ========== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444444;
+  border-radius: 4px;
+  transition: background 200ms ease-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+/* ========== SELECTION STYLING ========== */
+::selection {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+/* ========== PLACEHOLDER STYLING ========== */
+::placeholder {
+  color: #71717a;
+  opacity: 1;
+}
+
+::-webkit-input-placeholder {
+  color: #71717a;
+}
+
+::-moz-placeholder {
+  color: #71717a;
+  opacity: 1;
+}
+
+:-ms-input-placeholder {
+  color: #71717a;
+}
+
+/* ========== BACKDROP BLUR EFFECT ========== */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
+
+.backdrop-blur {
+  backdrop-filter: blur(12px);
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(16px);
+}
+
+/* ========== UTILITY ANIMATIONS ========== */
+
+/* Page entrance */
+.animate-page-in {
+  animation: fadeIn 400ms ease-out forwards;
+}
+
+/* Modal entrance */
+.animate-modal-in {
+  animation: slideUp 300ms ease-out forwards;
+}
+
+/* Sidebar entrance */
+.animate-sidebar-in {
+  animation: slideInLeft 300ms ease-out forwards;
+}
+
+/* Card hover lift effect */
+.hover-lift {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Button press effect */
+.button-press {
+  active {
+    transform: scale(0.98);
+  }
+}
+
+/* Loading state */
+.loading {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #27272a 0%,
+    #333333 50%,
+    #27272a 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Success animation */
+.animate-success {
+  animation: slideUp 300ms ease-out, glowPulse 1s ease-out;
+}
+
+/* Error animation */
+.animate-error {
+  animation: shake 400ms cubic-bezier(0.36, 0, 0.66, 1);
+}
+
+/* ========== CUSTOM EASING ========== */
+.ease-smooth {
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ease-in-smooth {
+  animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.ease-out-smooth {
+  animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ========== ACCESSIBILITY & MOTION ========== */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background: #444444;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555555;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  ::-webkit-scrollbar-thumb {
+    background: #bbbbbb;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #999999;
+  }
+}
+
+/* Print styles */
+@media print {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

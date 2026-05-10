@@ -7,14 +7,23 @@ import { MeshViewer } from '@/components/viewport/MeshViewer';
 import { CADToolbar } from '@/components/editor/CADToolbar';
 import { PropertyInspector } from '@/components/editor/PropertyInspector';
 import { AIAssistant } from '@/components/claude/AIAssistant';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Header } from '@/components/layout/Header';
+import { StatusBar } from '@/components/layout/StatusBar';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card, CardBody, CardTitle } from '@/components/ui/Card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
+import { Badge } from '@/components/ui/Badge';
+import { Separator } from '@/components/ui/Separator';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { ArrowLeft, Sparkles, Save, Download } from 'lucide-react';
 import * as THREE from 'three';
 
 export default function EditorPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [selectedMesh, setSelectedMesh] = useState<THREE.Mesh | null>(null);
   const [meshName, setMeshName] = useState('Untitled Mesh');
+  const [isSaved, setIsSaved] = useState(true);
   const [meshStats, setMeshStats] = useState({
     vertices: 0,
     faces: 0,
@@ -22,7 +31,7 @@ export default function EditorPage() {
     isValid: true,
   });
   const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const [editingFilePath, setEditingFilePath] = useState('services/geometry-engine/src/curvature.rs');
+  const editingFilePath = 'services/geometry-engine/src/curvature.rs';
 
   useEffect(() => {
     if (!loading && !user) {
@@ -33,7 +42,10 @@ export default function EditorPage() {
   if (loading) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading editor...</div>
+        <div className="text-center space-y-4 animate-fadeIn">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted text-sm">Loading editor...</p>
+        </div>
       </div>
     );
   }
@@ -43,7 +55,7 @@ export default function EditorPage() {
   }
 
   const handleMeshChange = (mesh: THREE.Mesh) => {
-    setSelectedMesh(mesh);
+    setIsSaved(false);
 
     // Update stats from geometry
     if (mesh.geometry) {
@@ -62,213 +74,221 @@ export default function EditorPage() {
     }
   };
 
-  const meshProperties = [
-    {
-      name: 'Name',
-      value: meshName,
-      type: 'text' as const,
-      onChange: (v: string | number) => setMeshName(String(v)),
-    },
-    {
-      name: 'Vertices',
-      value: meshStats.vertices,
-      type: 'number' as const,
-      onChange: () => {},
-    },
-    {
-      name: 'Faces',
-      value: meshStats.faces,
-      type: 'number' as const,
-      onChange: () => {},
-    },
-    {
-      name: 'Validity',
-      value: meshStats.isValid ? 'Valid' : 'Invalid',
-      type: 'select' as const,
-      options: ['Valid', 'Invalid'],
-      onChange: () => {},
-    },
-  ];
 
   return (
-    <div className="w-full h-screen bg-background text-foreground">
+    <div className="w-full h-screen bg-background text-foreground flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between h-16 border-b border-border px-6">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-card rounded-lg transition-colors"
-            title="Back"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-lg font-semibold">{meshName}</h1>
-            <p className="text-xs text-muted-foreground">CAD Editor • {user.email}</p>
+      <Header
+        logo={
+          <Tooltip content="Back to Dashboard">
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-card-hover rounded-lg transition-colors text-muted hover:text-foreground"
+            >
+              <ArrowLeft size={20} />
+            </button>
+          </Tooltip>
+        }
+        title={
+          <div className="text-center">
+            <h1 className="text-xl font-semibold text-foreground">
+              {meshName}
+              {!isSaved && <span className="text-xs text-warning ml-2">● Unsaved</span>}
+            </h1>
+            <p className="text-xs text-muted">CAD Editor</p>
+          </div>
+        }
+        rightContent={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setIsSaved(true);
+              }}
+              leftIcon={<Save size={16} />}
+            >
+              Save
+            </Button>
+            <Tooltip content="Ask Claude AI for help">
+              <Button
+                variant={showAIAssistant ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => setShowAIAssistant(!showAIAssistant)}
+                leftIcon={<Sparkles size={16} />}
+              >
+                {showAIAssistant ? 'Close' : 'Claude'}
+              </Button>
+            </Tooltip>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {}}
+              leftIcon={<Download size={16} />}
+            >
+              Export
+            </Button>
+          </div>
+        }
+      />
+
+      {/* Main Editor Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Toolbar */}
+        <div className="w-56 border-r border-border bg-card/30 p-4 overflow-y-auto space-y-2">
+          <div className="mb-4">
+            <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-3 px-2">
+              Tools
+            </div>
+            <CADToolbar onToolSelect={() => {}} />
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowAIAssistant(!showAIAssistant)}
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors text-sm font-medium flex items-center gap-2"
-          >
-            <Sparkles size={16} />
-            {showAIAssistant ? 'Hide' : 'Ask Claude'}
-          </button>
-          <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium">
-            Save
-          </button>
-          <button className="px-4 py-2 bg-card border border-border rounded-lg hover:bg-card/80 transition-colors text-sm font-medium">
-            Export
-          </button>
-        </div>
-      </div>
-
-      {/* Main Editor Layout */}
-      <div className="flex h-[calc(100vh-64px)]">
-        {/* Left Sidebar - Tools */}
-        <div className="w-56 border-r border-border bg-card/40 p-4 overflow-y-auto">
-          <CADToolbar onToolSelect={(toolId) => console.log('Selected tool:', toolId)} />
-        </div>
-
         {/* Center - 3D Viewport */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-hidden relative">
           <MeshViewer
             autoRotate={false}
             showWireframe={false}
             editable={true}
             onMeshChange={handleMeshChange}
           />
-        </div>
 
-        {/* Right Sidebar - Properties or AI Assistant */}
-        <div className={`${showAIAssistant ? 'w-96' : 'w-72'} border-l border-border bg-card/40 p-4 overflow-y-auto`}>
-          {showAIAssistant ? (
-            <AIAssistant
-              filePath={editingFilePath}
-              language="rust"
-              currentCode={`// Current code from ${editingFilePath}`}
-              onAcceptChange={(newCode) => {
-                console.log('Accepted changes:', newCode);
-                // In a real implementation, this would update the file
-              }}
-              onClose={() => setShowAIAssistant(false)}
-            />
-          ) : (
-            <div className="space-y-4">
-          <PropertyInspector title="Mesh Properties" properties={meshProperties} />
-
-          <div className="border-t border-border pt-4">
-            <PropertyInspector
-              title="Transform"
-              properties={[
-                {
-                  name: 'Position X',
-                  value: 0,
-                  type: 'number',
-                  onChange: () => {},
-                },
-                {
-                  name: 'Position Y',
-                  value: 0,
-                  type: 'number',
-                  onChange: () => {},
-                },
-                {
-                  name: 'Position Z',
-                  value: 0,
-                  type: 'number',
-                  onChange: () => {},
-                },
-                {
-                  name: 'Rotation X',
-                  value: 0,
-                  type: 'number',
-                  onChange: () => {},
-                },
-                {
-                  name: 'Rotation Y',
-                  value: 0,
-                  type: 'number',
-                  onChange: () => {},
-                },
-                {
-                  name: 'Rotation Z',
-                  value: 0,
-                  type: 'number',
-                  onChange: () => {},
-                },
-                {
-                  name: 'Scale',
-                  value: 1,
-                  type: 'number',
-                  onChange: () => {},
-                },
-              ]}
-            />
-          </div>
-
-          <div className="border-t border-border pt-4">
-            <PropertyInspector
-              title="Appearance"
-              properties={[
-                {
-                  name: 'Color',
-                  value: '#3b82f6',
-                  type: 'text',
-                  onChange: () => {},
-                },
-                {
-                  name: 'Opacity',
-                  value: 1,
-                  type: 'number',
-                  onChange: () => {},
-                },
-                {
-                  name: 'Metallic',
-                  value: 0,
-                  type: 'number',
-                  onChange: () => {},
-                },
-                {
-                  name: 'Roughness',
-                  value: 0.5,
-                  type: 'number',
-                  onChange: () => {},
-                },
-              ]}
-            />
-          </div>
-
-          {/* Statistics */}
-          <div className="bg-card rounded-lg border border-border p-4">
-            <h3 className="text-sm font-semibold mb-3 text-foreground">Statistics</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Vertices:</span>
-                <span className="font-mono">{meshStats.vertices}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Faces:</span>
-                <span className="font-mono">{meshStats.faces}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Triangles:</span>
-                <span className="font-mono">{meshStats.triangles}</span>
-              </div>
-              <div className="pt-2 border-t border-border flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <span className={meshStats.isValid ? 'text-success' : 'text-error'}>
-                  {meshStats.isValid ? 'Valid' : 'Invalid'}
-                </span>
-              </div>
+          {/* Viewport Controls Legend */}
+          <div className="absolute top-4 right-4 text-xs text-muted space-y-1 pointer-events-none">
+            <div className="bg-background/80 backdrop-blur px-3 py-2 rounded-lg border border-border">
+              <div className="font-semibold text-foreground mb-1">Controls</div>
+              <div>🖱️ Rotate • Scroll Zoom • Space Pan</div>
             </div>
           </div>
+        </div>
+
+        {/* Right Sidebar - Properties or AI */}
+        <div className={`border-l border-border bg-card/30 overflow-y-auto transition-all duration-300 ${
+          showAIAssistant ? 'w-96' : 'w-80'
+        }`}>
+          {showAIAssistant ? (
+            <div className="h-full flex flex-col">
+              <AIAssistant
+                filePath={editingFilePath}
+                language="rust"
+                currentCode={`// Current code from ${editingFilePath}`}
+                onAcceptChange={() => {
+                  setIsSaved(false);
+                }}
+                onClose={() => setShowAIAssistant(false)}
+              />
+            </div>
+          ) : (
+            <div className="h-full flex flex-col p-4 space-y-4">
+              {/* Properties Tabs */}
+              <Tabs defaultValue="properties">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="properties">Properties</TabsTrigger>
+                  <TabsTrigger value="inspector">Inspector</TabsTrigger>
+                </TabsList>
+
+                {/* Properties Tab */}
+                <TabsContent value="properties" className="space-y-4">
+                  {/* Mesh Properties Card */}
+                  <Card shadow="sm">
+                    <CardBody className="space-y-3">
+                      <CardTitle className="text-sm">Mesh</CardTitle>
+                      <Input
+                        label="Name"
+                        value={meshName}
+                        onChange={(e) => {
+                          setMeshName(e.target.value);
+                          setIsSaved(false);
+                        }}
+                        fullWidth
+                      />
+                    </CardBody>
+                  </Card>
+
+                  {/* Transform Card */}
+                  <Card shadow="sm">
+                    <CardBody className="space-y-3">
+                      <CardTitle className="text-sm">Transform</CardTitle>
+                      <PropertyInspector
+                        title=""
+                        properties={[
+                          { name: 'Position X', value: 0, type: 'number', onChange: () => {} },
+                          { name: 'Position Y', value: 0, type: 'number', onChange: () => {} },
+                          { name: 'Position Z', value: 0, type: 'number', onChange: () => {} },
+                          { name: 'Scale', value: 1, type: 'number', onChange: () => {} },
+                        ]}
+                      />
+                    </CardBody>
+                  </Card>
+
+                  {/* Appearance Card */}
+                  <Card shadow="sm">
+                    <CardBody className="space-y-3">
+                      <CardTitle className="text-sm">Appearance</CardTitle>
+                      <PropertyInspector
+                        title=""
+                        properties={[
+                          { name: 'Color', value: '#3b82f6', type: 'text', onChange: () => {} },
+                          { name: 'Opacity', value: 1, type: 'number', onChange: () => {} },
+                          { name: 'Roughness', value: 0.5, type: 'number', onChange: () => {} },
+                        ]}
+                      />
+                    </CardBody>
+                  </Card>
+                </TabsContent>
+
+                {/* Inspector Tab */}
+                <TabsContent value="inspector" className="space-y-4">
+                  <Card shadow="sm">
+                    <CardBody className="space-y-3">
+                      <CardTitle className="text-sm">Statistics</CardTitle>
+                      <Separator />
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted">Vertices:</span>
+                          <Badge variant="secondary" size="sm">{meshStats.vertices}</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted">Faces:</span>
+                          <Badge variant="secondary" size="sm">{meshStats.faces}</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted">Triangles:</span>
+                          <Badge variant="secondary" size="sm">{meshStats.triangles}</Badge>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-border">
+                          <span className="text-muted">Status:</span>
+                          <Badge
+                            variant={meshStats.isValid ? 'success' : 'error'}
+                            size="sm"
+                          >
+                            {meshStats.isValid ? 'Valid' : 'Invalid'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardBody>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
           )}
         </div>
       </div>
+
+      {/* Status Bar */}
+      <StatusBar
+        leftContent={
+          <>
+            <span>📊 {meshStats.vertices.toLocaleString()} vertices</span>
+            <span>• {meshStats.faces.toLocaleString()} faces</span>
+          </>
+        }
+        rightContent={
+          <>
+            <span>✓ Ready</span>
+          </>
+        }
+      />
     </div>
   );
 }

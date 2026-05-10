@@ -33,12 +33,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) throw new Error('Login failed');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Login failed');
+      }
 
       const data = await response.json();
       setToken(data.token);
-      setUser(data.user);
+      setUser({
+        id: data.id,
+        email: data.email,
+        role: data.role,
+      });
       localStorage.setItem('token', data.token);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -53,12 +63,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) throw new Error('Registration failed');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Registration failed');
+      }
 
       const data = await response.json();
       setToken(data.token);
-      setUser(data.user);
+      setUser({
+        id: data.id,
+        email: data.email,
+        role: 'user',
+      });
       localStorage.setItem('token', data.token);
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
