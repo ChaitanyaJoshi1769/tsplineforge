@@ -5,6 +5,7 @@ import * as THREE from 'three';
 
 interface MeshViewerProps {
   meshData?: ArrayBuffer;
+  importedGeometry?: THREE.BufferGeometry | THREE.Group | null;
   autoRotate?: boolean;
   showNormals?: boolean;
   showWireframe?: boolean;
@@ -16,6 +17,7 @@ interface MeshViewerProps {
 
 export function MeshViewer({
   meshData,
+  importedGeometry,
   autoRotate = false,
   showNormals = false,
   showWireframe = false,
@@ -78,18 +80,72 @@ export function MeshViewer({
 
     // Create default mesh or use provided data
     let mesh = meshRef.current;
+
+    // Remove existing mesh if we're importing new geometry
+    if (importedGeometry && meshRef.current) {
+      scene.remove(meshRef.current);
+      meshRef.current = null;
+      mesh = null;
+    }
+
     if (!mesh) {
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
-      const material = new THREE.MeshPhongMaterial({
-        color: 0x3b82f6,
-        emissive: 0x1e40af,
-        shininess: 100,
-      });
-      mesh = new THREE.Mesh(geometry, material);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      scene.add(mesh);
-      meshRef.current = mesh;
+      // Use imported geometry if provided, otherwise create default box
+      if (importedGeometry) {
+        if (importedGeometry instanceof THREE.BufferGeometry) {
+          // It's a geometry, create a mesh from it
+          const material = new THREE.MeshPhongMaterial({
+            color: 0x3b82f6,
+            emissive: 0x1e40af,
+            shininess: 100,
+          });
+          mesh = new THREE.Mesh(importedGeometry, material);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          scene.add(mesh);
+          meshRef.current = mesh;
+        } else if (importedGeometry instanceof THREE.Group) {
+          // It's a group (from GLTF/OBJ), use it directly
+          scene.add(importedGeometry);
+          meshRef.current = importedGeometry as any;
+
+          // Apply shadow properties to all meshes in the group
+          importedGeometry.traverse((node) => {
+            if (node instanceof THREE.Mesh) {
+              node.castShadow = true;
+              node.receiveShadow = true;
+            }
+          });
+          mesh = importedGeometry as any;
+        }
+      } else {
+        // Create default box
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshPhongMaterial({
+          color: 0x3b82f6,
+          emissive: 0x1e40af,
+          shininess: 100,
+        });
+        mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        scene.add(mesh);
+        meshRef.current = mesh;
+      }
+    }
+
+    // Auto-fit camera to geometry bounds
+    if (importedGeometry && mesh) {
+      const bbox = new THREE.Box3().setFromObject(mesh);
+      const size = bbox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const fov = camera.fov * (Math.PI / 180);
+      let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+      cameraZ *= 1.5; // Add some padding
+      camera.position.z = cameraZ;
+
+      const center = bbox.getCenter(new THREE.Vector3());
+      mesh.position.sub(center); // Center the mesh
+      camera.lookAt(0, 0, 0);
     }
 
     // Add wireframe if needed
@@ -187,7 +243,7 @@ export function MeshViewer({
       window.removeEventListener('click', onClick);
       containerRef.current?.removeChild(renderer.domElement);
     };
-  }, [autoRotate, showWireframe, meshData, editable, onMeshChange]);
+  }, [autoRotate, showWireframe, meshData, importedGeometry, editable, onMeshChange]);
 
   return (
     <div

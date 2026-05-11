@@ -7,6 +7,7 @@ import { MeshViewer } from '@/components/viewport/MeshViewer';
 import { CADToolbar } from '@/components/editor/CADToolbar';
 import { PropertyInspector } from '@/components/editor/PropertyInspector';
 import { AIAssistant } from '@/components/claude/AIAssistant';
+import { ImportModelDialog } from '@/components/editor/ImportModelDialog';
 import { Header } from '@/components/layout/Header';
 import { StatusBar } from '@/components/layout/StatusBar';
 import { Button } from '@/components/ui/Button';
@@ -17,7 +18,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Separator } from '@/components/ui/Separator';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { ArrowLeft, Sparkles, Save, Download } from 'lucide-react';
+import { ArrowLeft, Sparkles, Save, Download, Upload } from 'lucide-react';
 import * as THREE from 'three';
 
 export default function EditorPage() {
@@ -32,6 +33,8 @@ export default function EditorPage() {
     isValid: true,
   });
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importedGeometry, setImportedGeometry] = useState<THREE.BufferGeometry | THREE.Group | null>(null);
   const editingFilePath = 'services/geometry-engine/src/curvature.rs';
 
   useEffect(() => {
@@ -86,6 +89,19 @@ export default function EditorPage() {
     }
   };
 
+  const handleImportSuccess = (geometry: THREE.BufferGeometry | THREE.Group, stats: any) => {
+    setImportedGeometry(geometry);
+    setIsSaved(false);
+
+    // Update mesh stats from import
+    setMeshStats({
+      vertices: stats.vertexCount,
+      faces: stats.faceCount,
+      triangles: stats.faceCount,
+      isValid: true,
+    });
+  };
+
 
   return (
     <div className="w-full h-screen bg-background text-foreground flex flex-col">
@@ -113,6 +129,16 @@ export default function EditorPage() {
         rightContent={
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <Tooltip content="Import 3D model">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowImportDialog(true)}
+                leftIcon={<Upload size={16} />}
+              >
+                Import
+              </Button>
+            </Tooltip>
             <Button
               variant="secondary"
               size="sm"
@@ -163,6 +189,7 @@ export default function EditorPage() {
             autoRotate={false}
             showWireframe={false}
             editable={true}
+            importedGeometry={importedGeometry}
             onMeshChange={handleMeshChange}
           />
 
@@ -302,6 +329,13 @@ export default function EditorPage() {
             <span>✓ Ready</span>
           </>
         }
+      />
+
+      {/* Import Model Dialog */}
+      <ImportModelDialog
+        isOpen={showImportDialog}
+        onClose={() => setShowImportDialog(false)}
+        onSuccess={handleImportSuccess}
       />
     </div>
   );
