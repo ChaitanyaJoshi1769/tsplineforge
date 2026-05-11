@@ -5,17 +5,22 @@ import { cn } from '@/lib/utils';
 
 export interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
   defaultValue?: string;
+  value?: string;
   onValueChange?: (value: string) => void;
   children: React.ReactNode;
 }
 
 const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
-  ({ defaultValue, onValueChange, children, className, ...props }, ref) => {
-    const [activeTab, setActiveTab] = useState(defaultValue || '');
+  ({ defaultValue, value, onValueChange, children, className, ...props }, ref) => {
+    const [internalTab, setInternalTab] = useState(defaultValue || '');
+    const isControlled = value !== undefined;
+    const activeTab = isControlled ? value : internalTab;
 
-    const handleTabChange = (value: string) => {
-      setActiveTab(value);
-      onValueChange?.(value);
+    const handleTabChange = (newValue: string) => {
+      if (!isControlled) {
+        setInternalTab(newValue);
+      }
+      onValueChange?.(newValue);
     };
 
     return (
