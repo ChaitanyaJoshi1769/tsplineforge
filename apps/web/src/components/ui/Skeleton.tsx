@@ -20,7 +20,7 @@ const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
     };
 
     const baseClasses = cn(
-      'bg-subtle animate-pulse',
+      'skeleton bg-gradient-to-r from-subtle via-card to-subtle',
       variantClasses[variant],
       className,
     );

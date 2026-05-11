@@ -253,18 +253,21 @@ export default function Dashboard() {
                     interactive
                     shadow="md"
                     onClick={() => router.push(`/project/${project.id}`)}
-                    className="cursor-pointer group animate-fadeIn"
+                    className="cursor-pointer group hover-lift"
                   >
                     <CardBody className="space-y-4">
                       {/* Icon & Title */}
                       <div className="flex items-start gap-3">
-                        <div className="text-3xl group-hover:scale-110 transition-transform">
+                        <div className="text-3xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-200">
                           📁
                         </div>
                         <div className="flex-1">
-                          <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                          <CardTitle className="text-lg group-hover:text-primary transition-colors duration-200">
                             {project.name}
                           </CardTitle>
+                          <p className="text-xs text-muted mt-0.5">
+                            {formatRelativeTime(project.createdAt)}
+                          </p>
                         </div>
                       </div>
 
@@ -274,13 +277,13 @@ export default function Dashboard() {
                       </CardDescription>
 
                       {/* Metadata */}
-                      <div className="flex items-center justify-between pt-2 border-t border-border">
-                        <Badge variant="secondary" size="sm">
+                      <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                        <Badge variant="primary" size="sm" dot>
                           {project.meshes.length} mesh
                           {project.meshes.length !== 1 ? 'es' : ''}
                         </Badge>
-                        <span className="text-xs text-muted">
-                          {formatRelativeTime(project.createdAt)}
+                        <span className="text-xs text-muted/60 group-hover:text-muted transition-colors">
+                          Click to open →
                         </span>
                       </div>
                     </CardBody>
