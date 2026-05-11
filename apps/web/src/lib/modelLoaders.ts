@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Three.js Model Loaders
  * Unified interface for loading various 3D model formats
@@ -32,7 +34,7 @@ export interface LoaderOptions {
  */
 export async function loadOBJ(
   arrayBuffer: ArrayBuffer,
-  options: LoaderOptions = {}
+  _options: LoaderOptions = {}
 ): Promise<LoaderResult> {
   try {
     const loader = new OBJLoader();
@@ -54,7 +56,7 @@ export async function loadOBJ(
  */
 export async function loadSTL(
   arrayBuffer: ArrayBuffer,
-  options: LoaderOptions = {}
+  _options: LoaderOptions = {}
 ): Promise<LoaderResult> {
   try {
     const loader = new STLLoader();
@@ -67,7 +69,6 @@ export async function loadSTL(
     if (isBinary) {
       geometry = loader.parse(arrayBuffer) as THREE.BufferGeometry;
     } else {
-      const text = new TextDecoder().decode(arrayBuffer);
       // For ASCII STL, we need to use the browser API or a custom parser
       geometry = loader.parse(arrayBuffer) as THREE.BufferGeometry;
     }
@@ -87,7 +88,7 @@ export async function loadSTL(
  */
 export async function loadGLTF(
   arrayBuffer: ArrayBuffer,
-  options: LoaderOptions = {}
+  _options: LoaderOptions = {}
 ): Promise<LoaderResult> {
   try {
     const loader = new GLTFLoader();
@@ -106,7 +107,7 @@ export async function loadGLTF(
             stats: calculateStats(gltf.scene),
           });
         },
-        options.onProgress ? (progress) => options.onProgress!(progress.loaded / progress.total) : undefined,
+        _options.onProgress ? (progress) => _options.onProgress!(progress.loaded / progress.total) : undefined,
         (error) => {
           URL.revokeObjectURL(url);
           reject(new Error(`Failed to load GLTF file: ${error.message}`));

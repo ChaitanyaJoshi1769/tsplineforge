@@ -8,6 +8,7 @@ import { CADToolbar } from '@/components/editor/CADToolbar';
 import { PropertyInspector } from '@/components/editor/PropertyInspector';
 import { AIAssistant } from '@/components/claude/AIAssistant';
 import { ImportModelDialog } from '@/components/editor/ImportModelDialog';
+import type { LoaderResult } from '@/lib/modelLoaders';
 import { Header } from '@/components/layout/Header';
 import { StatusBar } from '@/components/layout/StatusBar';
 import { Button } from '@/components/ui/Button';
@@ -89,7 +90,7 @@ export default function EditorPage() {
     }
   };
 
-  const handleImportSuccess = (geometry: THREE.BufferGeometry | THREE.Group, stats: any) => {
+  const handleImportSuccess = (geometry: THREE.BufferGeometry | THREE.Group, stats: LoaderResult['stats']) => {
     setImportedGeometry(geometry);
     setIsSaved(false);
 

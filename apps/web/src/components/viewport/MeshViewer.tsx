@@ -28,8 +28,8 @@ export function MeshViewer({
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const meshRef = useRef<THREE.Mesh | null>(null);
-  const controlsRef = useRef<object | null>(null);
+  const meshRef = useRef<THREE.Mesh | THREE.Group | null>(null);
+  const controlsRef = useRef<Record<string, unknown> | null>(null);
   const [selectedVertex, setSelectedVertex] = useState<number | null>(null);
 
   // Store unused props to prevent eslint warnings
@@ -106,7 +106,7 @@ export function MeshViewer({
         } else if (importedGeometry instanceof THREE.Group) {
           // It's a group (from GLTF/OBJ), use it directly
           scene.add(importedGeometry);
-          meshRef.current = importedGeometry as any;
+          meshRef.current = importedGeometry;
 
           // Apply shadow properties to all meshes in the group
           importedGeometry.traverse((node) => {
@@ -115,7 +115,7 @@ export function MeshViewer({
               node.receiveShadow = true;
             }
           });
-          mesh = importedGeometry as any;
+          mesh = importedGeometry;
         }
       } else {
         // Create default box
@@ -149,7 +149,7 @@ export function MeshViewer({
     }
 
     // Add wireframe if needed
-    if (showWireframe && mesh) {
+    if (showWireframe && mesh && mesh instanceof THREE.Mesh) {
       const wireframeGeometry = new THREE.WireframeGeometry(mesh.geometry);
       const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 1 });
       const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
@@ -214,7 +214,7 @@ export function MeshViewer({
 
       if (intersects.length > 0) {
         // Vertex selection would go here
-        if (onMeshChange) {
+        if (onMeshChange && meshRef.current instanceof THREE.Mesh) {
           onMeshChange(meshRef.current);
         }
       }

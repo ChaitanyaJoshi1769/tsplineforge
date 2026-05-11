@@ -1,18 +1,19 @@
 'use client';
 
 import React, { useRef } from 'react';
+import * as THREE from 'three';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { FileDropZone } from '@/components/ui/FileDropZone';
-import { Badge } from '@/components/ui/Badge';
 import { Card, CardBody, CardTitle } from '@/components/ui/Card';
 import { AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { useModelLoader } from '@/hooks/useModelLoader';
+import type { LoaderResult } from '@/lib/modelLoaders';
 
 interface ImportModelDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (geometry: any, stats: any) => void;
+  onSuccess: (geometry: THREE.BufferGeometry | THREE.Group, stats: LoaderResult['stats']) => void;
 }
 
 const SUPPORTED_FORMATS = [
@@ -51,9 +52,9 @@ export function ImportModelDialog({ isOpen, onClose, onSuccess }: ImportModelDia
         {/* File Drop Zone */}
         {!geometry && (
           <FileDropZone
-            onFilesSelected={handleFileSelect}
-            accept={['.obj', '.stl', '.gltf', '.glb']}
-            maxSize={100 * 1024 * 1024}
+            onDrop={handleFileSelect}
+            accept=".obj,.stl,.gltf,.glb"
+            maxFileSize={100 * 1024 * 1024}
             disabled={loading}
           />
         )}
