@@ -1,19 +1,29 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import dynamic from 'next/dynamic';
-
-const ThemeToggle = dynamic(() => import('@/components/theme/ThemeToggle').then(mod => ({ default: mod.ThemeToggle })), {
-  ssr: false,
-  loading: () => <div className="w-10 h-10" />,
-});
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 export interface AuthLayoutProps extends React.HTMLAttributes<HTMLDivElement> {
   logo?: React.ReactNode;
   branding?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
+}
+
+// Client-only theme toggle wrapper to avoid SSR hydration issues
+function ThemeToggleWrapper() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="w-10 h-10" />;
+  }
+
+  return <ThemeToggle />;
 }
 
 const AuthLayout = React.forwardRef<HTMLDivElement, AuthLayoutProps>(
@@ -31,7 +41,7 @@ const AuthLayout = React.forwardRef<HTMLDivElement, AuthLayoutProps>(
       >
         {/* Theme Toggle - Floating Button */}
         <div className="absolute top-4 right-4">
-          <ThemeToggle />
+          <ThemeToggleWrapper />
         </div>
 
         <div className="w-full max-w-md">
