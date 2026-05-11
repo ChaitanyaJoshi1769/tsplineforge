@@ -23,12 +23,11 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-html {
   /* Document-level horizontal clip prevents stray overflow from leaking,
      while vertical scroll falls through to the natural document scroll. */
   overflow-x: hidden;
+  overflow-y: auto;
+  height: 100%;
 }
 
 body {
@@ -37,7 +36,7 @@ body {
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 14px;
   line-height: 1.6;
-  min-height: 100vh;
+  height: 100%;
   -webkit-tap-highlight-color: transparent;
   transition: background-color 0.3s ease, color 0.3s ease;
   /* Prevent rubber-band scrolling past content edges */
