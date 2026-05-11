@@ -34,13 +34,13 @@ const AuthLayout = React.forwardRef<HTMLDivElement, AuthLayoutProps>(
         className={cn(
           'min-h-screen w-full bg-gradient-to-br from-background via-background to-subtle',
           'flex flex-col items-center justify-center',
-          'px-4 py-8 relative overflow-hidden',
+          'px-4 py-8 relative',
           className,
         )}
         {...props}
       >
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Animated Background Elements (clip orbs to viewport without blocking page scroll) */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
           {/* Gradient orbs */}
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl opacity-30 -translate-y-1/2" />
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-tl from-secondary/10 to-transparent rounded-full blur-3xl opacity-30 translate-y-1/2" />

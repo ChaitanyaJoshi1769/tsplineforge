@@ -40,6 +40,17 @@ export default function EditorPage() {
     }
   }, [user, loading, router]);
 
+  // Lock scrolling while on the editor page (3D canvas owns the viewport).
+  // Clean up on unmount so other pages can scroll normally.
+  useEffect(() => {
+    document.documentElement.classList.add('editor-active');
+    document.body.classList.add('editor-active');
+    return () => {
+      document.documentElement.classList.remove('editor-active');
+      document.body.classList.remove('editor-active');
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-background">
