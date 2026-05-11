@@ -32,45 +32,64 @@ const AuthLayout = React.forwardRef<HTMLDivElement, AuthLayoutProps>(
       <div
         ref={ref}
         className={cn(
-          'min-h-screen bg-gradient-to-br from-background via-background to-subtle',
+          'min-h-screen w-full bg-gradient-to-br from-background via-background to-subtle',
           'flex flex-col items-center justify-center',
-          'px-4 py-8 relative',
+          'px-4 py-8 relative overflow-hidden',
           className,
         )}
         {...props}
       >
-        {/* Theme Toggle - Floating Button */}
-        <div className="absolute top-4 right-4">
-          <ThemeToggleWrapper />
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Gradient orbs */}
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl opacity-30 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-tl from-secondary/10 to-transparent rounded-full blur-3xl opacity-30 translate-y-1/2" />
+          <div className="absolute top-1/3 right-0 w-96 h-96 bg-gradient-to-l from-accent/5 to-transparent rounded-full blur-3xl opacity-20" />
         </div>
 
-        <div className="w-full max-w-md">
-          {/* Logo & Branding */}
-          <div className="text-center mb-8 animate-fadeIn">
+        {/* Content */}
+        <div className="relative z-10 w-full max-w-md">
+          {/* Header - Theme Toggle */}
+          <div className="absolute -top-12 right-0 z-50">
+            <ThemeToggleWrapper />
+          </div>
+
+          {/* Logo & Branding Section */}
+          <div className="text-center mb-8 space-y-4">
             {logo && (
-              <div className="flex justify-center mb-4">
+              <div className="flex justify-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
                 {logo}
               </div>
             )}
             {branding && (
-              <div className="mb-6">
+              <div className="animate-slideUp" style={{ animationDelay: '0.2s' }}>
                 {branding}
               </div>
             )}
           </div>
 
-          {/* Auth Form */}
-          <div className="bg-card border border-border rounded-lg shadow-lg p-6 md:p-8 animate-slideUp">
-            {children}
+          {/* Auth Form Card */}
+          <div className="relative group animate-slideUp" style={{ animationDelay: '0.3s' }}>
+            {/* Gradient border effect */}
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
+
+            {/* Card content */}
+            <div className="relative bg-card border border-border/50 rounded-2xl shadow-2xl p-6 md:p-8 backdrop-blur-sm">
+              {children}
+            </div>
           </div>
 
           {/* Footer Links */}
           {footer && (
-            <div className="text-center mt-6 text-xs text-muted">
+            <div className="text-center mt-8 text-xs text-muted/60 font-medium animate-fadeIn" style={{ animationDelay: '0.4s' }}>
               {footer}
             </div>
           )}
         </div>
+
+        {/* Floating accent elements */}
+        <div className="absolute top-1/4 left-0 w-2 h-2 bg-primary/20 rounded-full blur animate-pulse" />
+        <div className="absolute bottom-1/4 right-0 w-1.5 h-1.5 bg-secondary/20 rounded-full blur animate-pulse" style={{ animationDelay: '0.5s' }} />
       </div>
     );
   },
