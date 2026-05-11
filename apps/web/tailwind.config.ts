@@ -1,4 +1,7 @@
-const config = {
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -10,6 +13,7 @@ const config = {
       colors: {
         // Primary Brand Color (Modern Blue)
         primary: {
+          DEFAULT: '#3b82f6',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
@@ -23,6 +27,7 @@ const config = {
         },
         // Secondary Color (Purple)
         secondary: {
+          DEFAULT: '#8b5cf6',
           400: '#a78bfa',
           500: '#8b5cf6',
           600: '#7c3aed',
@@ -30,27 +35,32 @@ const config = {
         },
         // Accent Color (Pink)
         accent: {
+          DEFAULT: '#ec4899',
           400: '#f472b6',
           500: '#ec4899',
           600: '#db2777',
         },
         // Status Colors
         success: {
+          DEFAULT: '#10b981',
           400: '#34d399',
           500: '#10b981',
           600: '#059669',
         },
         warning: {
+          DEFAULT: '#f59e0b',
           400: '#fbbf24',
           500: '#f59e0b',
           600: '#d97706',
         },
         error: {
+          DEFAULT: '#ef4444',
           400: '#f87171',
           500: '#ef4444',
           600: '#dc2626',
         },
         info: {
+          DEFAULT: '#0ea5e9',
           400: '#22d3ee',
           500: '#0ea5e9',
           600: '#0284c7',
