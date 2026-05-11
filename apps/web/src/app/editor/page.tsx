@@ -148,7 +148,7 @@ export default function EditorPage() {
       {/* Main Editor Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Toolbar - Hidden on mobile */}
-        <div className="hidden md:flex md:w-56 border-r border-border bg-card/30 p-4 overflow-y-auto space-y-2">
+        <div className="hidden md:flex md:w-56 border-r border-border/50 bg-card/50 backdrop-blur-sm p-4 overflow-y-auto space-y-2">
           <div className="mb-4">
             <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-3 px-2">
               Tools
@@ -176,7 +176,7 @@ export default function EditorPage() {
         </div>
 
         {/* Right Sidebar - Properties or AI - Hidden on mobile */}
-        <div className={`hidden lg:flex lg:flex-col border-l border-border bg-card/30 overflow-y-auto transition-all duration-300 ${
+        <div className={`hidden lg:flex lg:flex-col border-l border-border/50 bg-card/50 backdrop-blur-sm overflow-y-auto transition-all duration-300 ${
           showAIAssistant ? 'lg:w-96' : 'lg:w-80'
         }`}>
           {showAIAssistant ? (
@@ -256,24 +256,25 @@ export default function EditorPage() {
                     <CardBody className="space-y-3">
                       <CardTitle className="text-sm">Statistics</CardTitle>
                       <Separator />
-                      <div className="space-y-2 text-xs">
+                      <div className="space-y-2.5 text-xs">
                         <div className="flex justify-between items-center">
                           <span className="text-muted">Vertices:</span>
-                          <Badge variant="secondary" size="sm">{meshStats.vertices}</Badge>
+                          <Badge variant="primary" size="sm">{meshStats.vertices.toLocaleString()}</Badge>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-muted">Faces:</span>
-                          <Badge variant="secondary" size="sm">{meshStats.faces}</Badge>
+                          <Badge variant="info" size="sm">{meshStats.faces.toLocaleString()}</Badge>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-muted">Triangles:</span>
-                          <Badge variant="secondary" size="sm">{meshStats.triangles}</Badge>
+                          <Badge variant="secondary" size="sm">{meshStats.triangles.toLocaleString()}</Badge>
                         </div>
-                        <div className="flex justify-between items-center pt-2 border-t border-border">
+                        <div className="flex justify-between items-center pt-3 border-t border-border/50">
                           <span className="text-muted">Status:</span>
                           <Badge
                             variant={meshStats.isValid ? 'success' : 'error'}
                             size="sm"
+                            dot
                           >
                             {meshStats.isValid ? 'Valid' : 'Invalid'}
                           </Badge>
