@@ -83,7 +83,7 @@ const DropdownMenu = React.forwardRef<HTMLDivElement, DropdownMenuProps>(
     <div
       ref={ref}
       className={cn(
-        'bg-card border border-border rounded-lg shadow-lg overflow-hidden animate-slideUp',
+        'bg-card border border-border/50 rounded-lg shadow-lg overflow-hidden animate-dropdown-in',
         className,
       )}
       {...props}
@@ -120,12 +120,12 @@ const DropdownItem = React.forwardRef<HTMLButtonElement, DropdownItemProps>(
         ref={ref}
         className={cn(
           'w-full flex items-start gap-3 px-4 py-2.5 text-left text-sm',
-          'transition-colors duration-150',
+          'transition-all duration-150 ease-smooth',
           disabled
             ? 'opacity-50 cursor-not-allowed'
             : destructive
-              ? 'text-error hover:bg-error/10'
-              : 'text-foreground hover:bg-card-hover',
+              ? 'text-error hover:bg-error/15 hover:pl-5'
+              : 'text-foreground hover:bg-primary/10 hover:pl-5',
           className,
         )}
         disabled={disabled}

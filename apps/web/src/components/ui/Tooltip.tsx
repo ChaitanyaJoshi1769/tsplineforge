@@ -38,10 +38,10 @@ const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
     };
 
     const arrowClasses = {
-      top: 'bottom-[-4px] left-1/2 -translate-x-1/2 border-t-muted border-l-transparent border-r-transparent border-b-transparent',
-      bottom: 'top-[-4px] left-1/2 -translate-x-1/2 border-b-muted border-l-transparent border-r-transparent border-t-transparent',
-      left: 'left-[-4px] top-1/2 -translate-y-1/2 border-l-muted border-t-transparent border-b-transparent border-r-transparent',
-      right: 'right-[-4px] top-1/2 -translate-y-1/2 border-r-muted border-t-transparent border-b-transparent border-l-transparent',
+      top: 'bottom-[-4px] left-1/2 -translate-x-1/2 border-t-foreground border-l-transparent border-r-transparent border-b-transparent opacity-95',
+      bottom: 'top-[-4px] left-1/2 -translate-x-1/2 border-b-foreground border-l-transparent border-r-transparent border-t-transparent opacity-95',
+      left: 'left-[-4px] top-1/2 -translate-y-1/2 border-l-foreground border-t-transparent border-b-transparent border-r-transparent opacity-95',
+      right: 'right-[-4px] top-1/2 -translate-y-1/2 border-r-foreground border-t-transparent border-b-transparent border-l-transparent opacity-95',
     };
 
     return (
@@ -57,10 +57,10 @@ const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
           <div
             className={cn(
               'absolute z-tooltip pointer-events-none',
-              'px-3 py-2 rounded-md',
-              'bg-muted text-card text-sm font-medium',
-              'whitespace-nowrap',
-              'animate-fadeIn',
+              'px-3 py-2 rounded-lg',
+              'bg-foreground/95 text-background text-xs font-medium',
+              'whitespace-nowrap shadow-lg',
+              'animate-fadeIn tooltip-enter',
               placementClasses[placement],
               className,
             )}

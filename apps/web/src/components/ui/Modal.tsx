@@ -68,7 +68,7 @@ const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
         <div
           ref={ref}
           className={cn(
-            'relative bg-card border border-border rounded-lg shadow-xl',
+            'relative bg-card border border-border/50 rounded-xl shadow-xl',
             'w-full mx-4 animate-slideUp',
             sizeClasses[size],
             className,
@@ -86,11 +86,13 @@ const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
               </h2>
               <button
                 onClick={onClose}
-                className="text-muted hover:text-foreground transition-colors"
+                className="inline-flex items-center justify-center w-8 h-8 text-muted hover:text-foreground hover:bg-card-hover rounded-lg transition-all duration-200 ease-smooth"
                 aria-label="Close modal"
                 type="button"
               >
-                ✕
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
           )}
@@ -99,11 +101,13 @@ const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
             <div className="absolute top-4 right-4">
               <button
                 onClick={onClose}
-                className="text-muted hover:text-foreground transition-colors"
+                className="inline-flex items-center justify-center w-8 h-8 text-muted hover:text-foreground hover:bg-card-hover rounded-lg transition-all duration-200 ease-smooth"
                 aria-label="Close modal"
                 type="button"
               >
-                ✕
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
           )}

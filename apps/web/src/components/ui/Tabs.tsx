@@ -67,11 +67,11 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
         aria-selected={isActive}
         className={cn(
           'flex items-center gap-2 px-4 py-3 text-sm font-medium',
-          'transition-all duration-200',
+          'transition-all duration-200 ease-smooth',
           'border-b-2 -mb-[2px]',
           isActive
-            ? 'text-primary border-b-primary'
-            : 'text-muted border-b-transparent hover:text-foreground',
+            ? 'text-primary border-b-primary bg-primary/5'
+            : 'text-muted border-b-transparent hover:text-foreground hover:border-border',
           className,
         )}
         onClick={() => onTabChange(value)}
@@ -102,7 +102,7 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
       <div
         ref={ref}
         role="tabpanel"
-        className={cn('animate-fadeIn', className)}
+        className={cn('animate-fadeIn tab-content', className)}
         {...props}
       />
     );

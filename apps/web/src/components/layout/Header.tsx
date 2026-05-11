@@ -19,7 +19,7 @@ const Header = React.forwardRef<HTMLElement, HeaderProps>(
       <header
         ref={ref}
         className={cn(
-          'bg-card border-b border-border',
+          'bg-card/95 backdrop-blur-sm border-b border-border/50',
           'px-4 md:px-6 py-3 md:py-4',
           'flex items-center justify-between gap-2 md:gap-4',
           'transition-all duration-200',

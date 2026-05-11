@@ -52,13 +52,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               'text-foreground text-base',
               'placeholder:text-muted',
               'transition-all duration-200 ease-smooth',
-              'focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20',
-              'hover:border-border-light',
-              'disabled:opacity-60 disabled:cursor-not-allowed',
+              'focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/30 focus:shadow-md focus:shadow-primary/10',
+              'hover:border-border-light hover:bg-card-hover',
+              'disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-background',
               icon && 'pl-10',
               rightIcon && 'pr-10',
               isLoading && 'pr-10',
-              error && 'border-error focus:border-error focus:ring-error/20',
+              error && 'border-error focus:border-error focus:ring-error/30 focus:shadow-error/10',
               className,
             )}
             disabled={disabled || isLoading}

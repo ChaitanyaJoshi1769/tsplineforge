@@ -35,15 +35,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantClasses = {
       primary:
-        'bg-primary hover:bg-primary-600 text-white shadow-md hover:shadow-lg active:bg-primary-700',
+        'bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-md hover:shadow-lg hover:shadow-primary/30 active:shadow-sm',
       secondary:
-        'bg-secondary hover:bg-secondary-600 text-white shadow-md hover:shadow-lg active:bg-secondary-700',
+        'bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white shadow-md hover:shadow-lg hover:shadow-secondary/30 active:shadow-sm',
       outline:
-        'border border-border bg-transparent text-foreground hover:bg-card hover:border-border-light active:bg-card-hover',
+        'border border-border bg-transparent text-foreground hover:bg-card hover:border-primary hover:shadow-md active:bg-card-hover active:border-primary/50',
       ghost:
-        'bg-transparent text-foreground hover:bg-card active:bg-card-hover',
+        'bg-transparent text-foreground hover:bg-card/50 active:bg-card active:shadow-sm',
       danger:
-        'bg-error hover:bg-error-600 text-white shadow-md hover:shadow-lg active:bg-error-700',
+        'bg-gradient-to-r from-error to-error-600 hover:from-error-600 hover:to-error-700 text-white shadow-md hover:shadow-lg hover:shadow-error/30 active:shadow-sm',
     };
 
     const sizeClasses = {
