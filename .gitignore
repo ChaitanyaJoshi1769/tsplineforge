@@ -18,6 +18,7 @@ build/
 .next/
 .turbo/
 out/
+*.tsbuildinfo
 
 # Testing
 coverage/
