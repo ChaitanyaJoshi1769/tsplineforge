@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useEditorStore } from '@/hooks/useEditorStore';
+import { useMeshOperations } from '@/hooks/useMeshOperations';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Separator } from '@/components/ui/Separator';
 import {
@@ -30,42 +32,64 @@ interface CADToolbarProps {
 
 export function CADToolbar({ tools = [], onToolSelect }: CADToolbarProps) {
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const store = useEditorStore();
+  const meshOps = useMeshOperations();
 
   const defaultTools: Tool[] = [
     {
       id: 'select',
       label: 'Select',
       icon: Maximize2,
-      shortcut: 'S',
-      onClick: () => {},
+      shortcut: 'Click',
+      onClick: () => {
+        store.setTransformMode(null);
+      },
     },
     {
       id: 'move',
       label: 'Move',
       icon: Move3D,
-      shortcut: 'M',
-      onClick: () => {},
+      shortcut: 'G',
+      onClick: () => {
+        if (store.selectedMeshId) {
+          store.setTransformMode(store.transformMode === 'move' ? null : 'move');
+        }
+      },
     },
     {
       id: 'extrude',
-      label: 'Extrude',
+      label: 'Rotate',
       icon: Zap,
-      shortcut: 'E',
-      onClick: () => {},
+      shortcut: 'R',
+      onClick: () => {
+        if (store.selectedMeshId) {
+          store.setTransformMode(store.transformMode === 'rotate' ? null : 'rotate');
+        }
+      },
     },
     {
       id: 'duplicate',
       label: 'Duplicate',
       icon: Copy,
-      shortcut: 'D',
-      onClick: () => {},
+      shortcut: 'Shift+D',
+      onClick: () => {
+        if (store.selectedMeshId) {
+          store.pushToHistory();
+          meshOps.duplicate();
+        }
+      },
     },
     {
       id: 'delete',
       label: 'Delete',
       icon: Trash2,
       shortcut: 'Del',
-      onClick: () => {},
+      onClick: () => {
+        if (store.selectedMeshId) {
+          store.pushToHistory();
+          meshOps.deleteMesh();
+        }
+      },
     },
   ];
 
@@ -155,12 +179,22 @@ export function CADToolbar({ tools = [], onToolSelect }: CADToolbarProps) {
       {/* History Tools */}
       <div className="grid grid-cols-2 gap-1">
         <Tooltip content="Undo (Ctrl+Z)">
-          <button className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-lg bg-card-hover hover:bg-card border border-border text-foreground transition-colors" title="Undo">
+          <button
+            onClick={() => meshOps.undo()}
+            disabled={!meshOps.canUndo}
+            className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-lg bg-card-hover hover:bg-card border border-border text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Undo"
+          >
             <Undo2 size={16} />
           </button>
         </Tooltip>
-        <Tooltip content="Redo (Ctrl+Y)">
-          <button className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-lg bg-card-hover hover:bg-card border border-border text-foreground transition-colors" title="Redo">
+        <Tooltip content="Redo (Ctrl+Shift+Z)">
+          <button
+            onClick={() => meshOps.redo()}
+            disabled={!meshOps.canRedo}
+            className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-lg bg-card-hover hover:bg-card border border-border text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Redo"
+          >
             <Redo2 size={16} />
           </button>
         </Tooltip>
