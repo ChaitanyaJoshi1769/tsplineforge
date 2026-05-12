@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -14,6 +15,7 @@ export function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const { register, loading } = useAuth();
+  const router = useRouter();
 
   // Password strength indicator
   const passwordStrength = useMemo(() => {
@@ -50,6 +52,8 @@ export function RegisterForm() {
 
     try {
       await register(email, password);
+      // Redirect to dashboard after successful registration
+      router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     }
