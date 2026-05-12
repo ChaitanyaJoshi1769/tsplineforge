@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-
-// In-memory user database (demo purposes - use real DB in production)
-const users: Record<string, { password: string; id: string; role: string }> = {
-  'demo@example.com': {
-    password: 'password123',
-    id: 'user_1',
-    role: 'admin',
-  },
-};
+import { users, userExists, createUser } from '@/lib/userStore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check user doesn't already exist
-    if (users[email]) {
+    if (userExists(email)) {
       return NextResponse.json(
         { error: 'Email already registered' },
         { status: 409 }
@@ -57,11 +49,7 @@ export async function POST(request: NextRequest) {
 
     // Create new user
     const userId = `user_${crypto.randomBytes(8).toString('hex')}`;
-    users[email] = {
-      password,
-      id: userId,
-      role: 'user',
-    };
+    createUser(email, password, userId);
 
     // Generate JWT token (simplified)
     const token = crypto.randomBytes(32).toString('hex');

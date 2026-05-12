@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-
-// In-memory user database (demo purposes - use real DB in production)
-const users: Record<string, { password: string; id: string; role: string }> = {
-  'demo@example.com': {
-    password: 'password123',
-    id: 'user_1',
-    role: 'admin',
-  },
-};
+import { getUserByEmail } from '@/lib/userStore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check user exists
-    const user = users[email];
+    const user = getUserByEmail(email);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
