@@ -12,6 +12,7 @@ interface MeshViewerProps {
   autoRotate?: boolean;
   editable?: boolean;
   onMeshChange?: (mesh: THREE.Mesh) => void;
+  onSceneReady?: (scene: THREE.Scene) => void;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   [key: string]: unknown;
 }
@@ -21,6 +22,7 @@ export function MeshViewer({
   autoRotate = false,
   editable = false,
   onMeshChange,
+  onSceneReady,
 }: MeshViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -29,6 +31,16 @@ export function MeshViewer({
   const meshRef = useRef<THREE.Mesh | THREE.Group | null>(null);
   const importedGeometryRef = useRef<THREE.BufferGeometry | THREE.Group | null>(null);
   const [selectedVertex, _setSelectedVertex] = useState<number | null>(null);
+
+  // Mouse controls state
+  const mouseState = useRef({
+    isRotating: false,
+    isPanning: false,
+    lastX: 0,
+    lastY: 0,
+    speed: 0.005,
+    spacePressed: false,
+  });
 
   // Editor hooks
   const editorStore = useEditorStore();
@@ -106,13 +118,18 @@ export function MeshViewer({
 
     animate();
 
+    // Notify parent component that scene is ready
+    if (onSceneReady) {
+      onSceneReady(scene);
+    }
+
     // Handle camera controls
     const onMouseWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const zoomSpeed = 0.1;
-      const direction = camera.position.normalize();
+      const zoomSpeed = 0.001;
+      const direction = camera.position.clone().normalize();
       const distance = camera.position.length();
-      const newDistance = Math.max(0.1, Math.min(20, distance + e.deltaY * zoomSpeed));
+      const newDistance = Math.max(0.1, Math.min(50, distance - e.deltaY * zoomSpeed * distance));
       camera.position.copy(direction.multiplyScalar(newDistance));
     };
 
@@ -120,11 +137,75 @@ export function MeshViewer({
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
+    const onMouseDown = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+
+      const isSpacePressed = mouseState.current.spacePressed;
+
+      if (e.button === 0 && !isSpacePressed) {
+        // Left-click for rotation
+        mouseState.current.isRotating = true;
+        mouseState.current.lastX = e.clientX;
+        mouseState.current.lastY = e.clientY;
+        containerRef.current.style.cursor = 'grabbing';
+      } else if ((e.button === 0 && isSpacePressed) || e.button === 2) {
+        // Space+click or right-click for panning
+        mouseState.current.isPanning = true;
+        mouseState.current.lastX = e.clientX;
+        mouseState.current.lastY = e.clientY;
+        containerRef.current.style.cursor = 'grab';
+      }
+    };
+
     const onMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      if (mouseState.current.isRotating) {
+        const deltaX = e.clientX - mouseState.current.lastX;
+        const deltaY = e.clientY - mouseState.current.lastY;
+
+        // Rotate camera around target (origin)
+        const radius = camera.position.length();
+        let theta = Math.atan2(camera.position.x, camera.position.z);
+        let phi = Math.acos(camera.position.y / radius);
+
+        theta -= deltaX * mouseState.current.speed;
+        phi += deltaY * mouseState.current.speed;
+
+        // Clamp phi to avoid flipping
+        phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
+
+        camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
+        camera.position.y = radius * Math.cos(phi);
+        camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
+        camera.lookAt(0, 0, 0);
+
+        mouseState.current.lastX = e.clientX;
+        mouseState.current.lastY = e.clientY;
+      } else if (mouseState.current.isPanning) {
+        const deltaX = (e.clientX - mouseState.current.lastX) * 0.01;
+        const deltaY = (e.clientY - mouseState.current.lastY) * 0.01;
+
+        // Pan camera
+        const forward = new THREE.Vector3(0, 0, 1).applyAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          Math.atan2(camera.position.y, Math.sqrt(camera.position.x ** 2 + camera.position.z ** 2))
+        );
+        const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(
+          new THREE.Vector3(0, 1, 0),
+          Math.atan2(camera.position.x, camera.position.z)
+        );
+
+        camera.position.addScaledVector(right, -deltaX);
+        camera.position.addScaledVector(forward, deltaY);
+        camera.lookAt(0, 0, 0);
+
+        mouseState.current.lastX = e.clientX;
+        mouseState.current.lastY = e.clientY;
+      }
 
       if (editable && selectedVertex !== null && meshRef.current) {
         raycaster.setFromCamera(mouse, camera);
@@ -132,8 +213,17 @@ export function MeshViewer({
       }
     };
 
+    const onMouseUp = (_e: MouseEvent) => {
+      mouseState.current.isRotating = false;
+      mouseState.current.isPanning = false;
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'default';
+      }
+    };
+
     const onClick = (e: MouseEvent) => {
       if (!editable || !meshRef.current) return;
+      if (mouseState.current.isRotating || mouseState.current.isPanning) return;
 
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
@@ -152,6 +242,10 @@ export function MeshViewer({
       }
     };
 
+    const onContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
     // Handle resize
     const handleResize = () => {
       if (!containerRef.current) return;
@@ -166,13 +260,36 @@ export function MeshViewer({
     window.addEventListener('resize', handleResize);
     window.addEventListener('wheel', onMouseWheel, { passive: false });
     window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('contextmenu', onContextMenu);
     if (editable) window.addEventListener('click', onClick);
+
+    // Track space key
+    const onKeyDown = (_e: KeyboardEvent) => {
+      if (_e.code === 'Space') {
+        mouseState.current.spacePressed = true;
+      }
+    };
+    const onKeyUp = (_e: KeyboardEvent) => {
+      if (_e.code === 'Space') {
+        mouseState.current.spacePressed = false;
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('wheel', onMouseWheel);
       window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('click', onClick);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
       renderer.dispose();
       containerRef.current?.removeChild(renderer.domElement);
     };
@@ -273,6 +390,18 @@ export function MeshViewer({
       className="w-full h-full bg-background rounded-lg border border-border cursor-default relative"
       style={{ minHeight: '500px' }}
     >
+      {/* Viewport Controls Legend */}
+      <div className="absolute top-4 right-4 text-xs text-muted-foreground pointer-events-none">
+        <div className="bg-background/80 backdrop-blur px-4 py-3 rounded-lg border border-border space-y-1">
+          <div className="font-semibold text-foreground">Controls</div>
+          <div className="space-y-0.5 text-xs">
+            <div>🖱️ <span className="font-medium">Drag</span> - Rotate</div>
+            <div>🎚️ <span className="font-medium">Scroll</span> - Zoom</div>
+            <div>🛰️ <span className="font-medium">Space + Drag</span> - Pan</div>
+          </div>
+        </div>
+      </div>
+
       {editable && (
         <div className="absolute top-4 left-4 bg-card/80 p-3 rounded-lg text-sm text-muted-foreground z-10">
           <div>Scroll: Zoom</div>

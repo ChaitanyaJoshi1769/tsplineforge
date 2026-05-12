@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef as React_useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth';
 import { useEditorStore } from '@/hooks/useEditorStore';
@@ -10,6 +10,7 @@ import { MeshViewer } from '@/components/viewport/MeshViewer';
 import { CADToolbar } from '@/components/editor/CADToolbar';
 import { AIAssistant } from '@/components/claude/AIAssistant';
 import { ImportModelDialog } from '@/components/editor/ImportModelDialog';
+import { ExportDialog } from '@/components/editor/ExportDialog';
 import type { LoaderResult } from '@/lib/modelLoaders';
 import { Header } from '@/components/layout/Header';
 import { StatusBar } from '@/components/layout/StatusBar';
@@ -37,7 +38,9 @@ export default function EditorPage() {
   });
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const [importedGeometry, setImportedGeometry] = useState<THREE.BufferGeometry | THREE.Group | null>(null);
+  const sceneRef = React_useRef<THREE.Scene | null>(null);
   const editingFilePath = 'services/geometry-engine/src/curvature.rs';
 
   // Editor hooks
@@ -64,6 +67,35 @@ export default function EditorPage() {
       document.documentElement.classList.remove('editor-active');
       document.body.classList.remove('editor-active');
     };
+  }, []);
+
+  // Save to localStorage
+  const handleSave = () => {
+    try {
+      const saveData = {
+        meshName,
+        meshStats,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem('cad-editor-save', JSON.stringify(saveData));
+      setIsSaved(true);
+    } catch (err) {
+      console.error('Failed to save:', err);
+    }
+  };
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('cad-editor-save');
+      if (saved) {
+        const data = JSON.parse(saved);
+        setMeshName(data.meshName || 'Untitled Mesh');
+        setMeshStats(data.meshStats || { vertices: 0, faces: 0, triangles: 0, isValid: true });
+      }
+    } catch (err) {
+      console.error('Failed to load save data:', err);
+    }
   }, []);
 
   if (loading) {
@@ -154,9 +186,7 @@ export default function EditorPage() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => {
-                setIsSaved(true);
-              }}
+              onClick={handleSave}
               leftIcon={<Save size={16} />}
             >
               Save
@@ -174,7 +204,7 @@ export default function EditorPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {}}
+              onClick={() => setShowExportDialog(true)}
               leftIcon={<Download size={16} />}
             >
               Export
@@ -203,6 +233,9 @@ export default function EditorPage() {
             editable={true}
             importedGeometry={importedGeometry}
             onMeshChange={handleMeshChange}
+            onSceneReady={(scene) => {
+              sceneRef.current = scene;
+            }}
           />
 
           {/* Viewport Controls Legend */}
@@ -474,6 +507,14 @@ export default function EditorPage() {
         isOpen={showImportDialog}
         onClose={() => setShowImportDialog(false)}
         onSuccess={handleImportSuccess}
+      />
+
+      {/* Export Model Dialog */}
+      <ExportDialog
+        isOpen={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        scene={sceneRef.current}
+        defaultFilename={meshName}
       />
     </div>
   );
