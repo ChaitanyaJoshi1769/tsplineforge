@@ -11,6 +11,7 @@ import {
   clearExportHistory,
   getRelativeTime,
 } from '@/lib/exportFormats';
+import { exportAndDownload } from '@/lib/geometryExporter';
 import type { ExportFormat } from '@/lib/exportFormats';
 
 interface AdvancedExportDialogProps {
@@ -45,14 +46,19 @@ export function AdvancedExportDialog({
 
     setIsExporting(true);
     try {
-      // Simulate export process
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Perform actual export and download
+      const result = await exportAndDownload(geometry, selectedFormat, filename, {
+        unit: 'mm',
+        preserveColors,
+        preserveMaterials,
+      });
 
+      // Save to export history
       const entry = {
         id: Math.random().toString(36).substr(2, 9),
         filename: `${filename}.${formatInfo.extension}`,
         format: selectedFormat,
-        fileSize: Math.floor(Math.random() * 50 * 1024 * 1024), // Simulate file size
+        fileSize: result.size,
         timestamp: Date.now(),
         unit: 'mm' as const,
       };
@@ -60,9 +66,14 @@ export function AdvancedExportDialog({
       saveExportHistory(entry);
       setExportHistory(getExportHistory());
 
-      // Show success notification (would be toast in real app)
-      alert(`✓ ${entry.filename} exported successfully`);
+      // Show success message
+      const sizeInMB = (result.size / 1024 / 1024).toFixed(1);
+      alert(`✓ ${entry.filename} exported successfully (${sizeInMB}MB)`);
       onClose();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`✗ Export failed: ${errorMessage}`);
+      console.error('Export error:', error);
     } finally {
       setIsExporting(false);
     }
