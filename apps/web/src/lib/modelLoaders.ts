@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { parse3MF } from './3mfParser';
 
 export interface LoaderResult {
   geometry: THREE.BufferGeometry | THREE.Group;
@@ -117,13 +118,9 @@ export async function loadPLY(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
 }
 
 export async function load3MF(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
-  // 3MF (3D Manufacturing Format) support coming soon
-  // For now, provide helpful guidance to users
-  throw new Error(
-    '3MF (3D Manufacturing Format) support coming soon. ' +
-    'Please convert your 3MF file to STL, OBJ, or glTF format. ' +
-    'Recommended: Use free online 3D converters or Fusion 360 for conversion.'
-  );
+  const group = await parse3MF(arrayBuffer);
+  const stats = getGeometryStats(group);
+  return { geometry: group, stats };
 }
 
 export async function loadSDLPRT(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
