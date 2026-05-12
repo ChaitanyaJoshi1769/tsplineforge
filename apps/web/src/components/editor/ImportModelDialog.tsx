@@ -1,14 +1,10 @@
 'use client';
 
-import React, { useRef } from 'react';
-import * as THREE from 'three';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { FileDropZone } from '@/components/ui/FileDropZone';
-import { Card, CardBody, CardTitle } from '@/components/ui/Card';
-import { AlertCircle, CheckCircle, Loader } from 'lucide-react';
-import { useModelLoader } from '@/hooks/useModelLoader';
+import { useState, useRef } from 'react';
+import { Upload, X, AlertCircle, CheckCircle } from 'lucide-react';
+import { loadModel, MAX_FILE_SIZE, SUPPORTED_FORMATS } from '@/lib/modelLoaders';
 import type { LoaderResult } from '@/lib/modelLoaders';
+import * as THREE from 'three';
 
 interface ImportModelDialogProps {
   isOpen: boolean;
@@ -16,177 +12,211 @@ interface ImportModelDialogProps {
   onSuccess: (geometry: THREE.BufferGeometry | THREE.Group, stats: LoaderResult['stats']) => void;
 }
 
-const SUPPORTED_FORMATS = [
-  { ext: 'OBJ', description: 'Wavefront OBJ - Open, widely compatible' },
-  { ext: 'STL', description: 'Stereolithography - 3D printing standard' },
-  { ext: 'GLTF', description: 'GL Transmission Format - Modern web standard' },
-  { ext: 'GLB', description: 'Binary GLTF - Efficient model format' },
-];
+const SUPPORTED_EXTS = new Set(['stl', 'gltf', 'obj', 'glb', 'ply']);
 
 export function ImportModelDialog({ isOpen, onClose, onSuccess }: ImportModelDialogProps) {
-  const { loading, error, progress, geometry, stats, loadFile, reset } = useModelLoader();
+  const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = async (files: File[]) => {
-    if (files.length > 0) {
-      await loadFile(files[0]);
+  const validateFile = (file: File): string | null => {
+    // Check file extension
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    
+    if (!ext || !SUPPORTED_EXTS.has(ext)) {
+      return `Unsupported format: ${ext}. Supported formats: OBJ, STL, GLTF, GLB, PLY`;
     }
+
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      return `File is too large. Maximum size is ${(MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB`;
+    }
+
+    return null;
   };
 
-  const handleAccept = () => {
-    if (geometry && stats) {
-      onSuccess(geometry, stats);
-      reset();
+  const handleFileSelect = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const validationError = validateFile(file);
+
+    if (validationError) {
+      setError(validationError);
+      setSelectedFile(null);
+      return;
+    }
+
+    setSelectedFile(file);
+    setError(null);
+    await handleImport(file);
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const result = await loadModel(file);
+      onSuccess(result.geometry, result.stats);
       onClose();
+      setSelectedFile(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load model';
+      setError(`Import error: ${message}`);
+      setSelectedFile(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    reset();
-    onClose();
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
   };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    handleFileSelect(e.dataTransfer.files);
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={handleCancel} title="Import 3D Model">
-      <div className="space-y-6">
-        {/* File Drop Zone */}
-        {!geometry && (
-          <FileDropZone
-            onDrop={handleFileSelect}
-            accept=".obj,.stl,.gltf,.glb"
-            maxFileSize={100 * 1024 * 1024}
-            disabled={loading}
-          />
-        )}
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+      <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full mx-4 animate-slideUp">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">Import 3D Model</h2>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            disabled={isLoading}
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-        {/* Loading State */}
-        {loading && (
-          <Card shadow="sm">
-            <CardBody className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Importing model...</span>
-                <Loader className="w-4 h-4 animate-spin text-primary" />
-              </div>
-              <div className="w-full bg-card rounded-lg overflow-hidden h-2">
-                <div
-                  className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted">{progress}% complete</p>
-            </CardBody>
-          </Card>
-        )}
+        {/* Body */}
+        <div className="p-6 space-y-4">
+          {/* Drag Drop Zone */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              isDragging
+                ? 'border-primary bg-primary/10'
+                : 'border-border hover:border-primary/50'
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={(e) => handleFileSelect(e.target.files)}
+              accept={SUPPORTED_FORMATS.map((f) => `.${f.ext}`).join(',')}
+              className="hidden"
+              disabled={isLoading}
+            />
 
-        {/* Error State */}
-        {error && (
-          <Card shadow="sm">
-            <CardBody className="space-y-3 border-l-4 border-error">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-error">Import Failed</p>
-                  <p className="text-sm text-muted mt-1">{error}</p>
-                </div>
+            <div className="space-y-2">
+              <Upload
+                size={32}
+                className={`mx-auto ${isDragging ? 'text-primary' : 'text-muted-foreground'}`}
+              />
+              <div>
+                <p className="font-medium text-foreground">Drag & drop your model here</p>
+                <p className="text-sm text-muted-foreground">or</p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  reset();
-                  fileInputRef.current?.click();
-                }}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
               >
-                Try Another File
-              </Button>
-            </CardBody>
-          </Card>
-        )}
+                Choose File
+              </button>
+            </div>
+          </div>
 
-        {/* Success State */}
-        {geometry && stats && !loading && (
-          <Card shadow="sm">
-            <CardBody className="space-y-4 border-l-4 border-success">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-medium text-success">Model Loaded Successfully!</p>
-                  <p className="text-sm text-muted mt-1">Ready to import</p>
+          {/* Supported Formats */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase">Supported Formats</p>
+            <div className="grid grid-cols-2 gap-2">
+              {SUPPORTED_FORMATS.map((format) => (
+                <div
+                  key={format.ext}
+                  className="p-2 bg-subtle rounded text-xs text-muted-foreground border border-border"
+                >
+                  <span className="font-medium text-foreground">{format.name}</span>
+                  <br />
+                  <span>{format.description}</span>
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              {/* Stats Display */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="space-y-1">
-                  <p className="text-xs text-muted font-medium">Vertices</p>
-                  <p className="text-sm font-semibold text-foreground">{stats.vertexCount.toLocaleString()}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted font-medium">Faces</p>
-                  <p className="text-sm font-semibold text-foreground">{stats.faceCount.toLocaleString()}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted font-medium">Bounds (W×H×D)</p>
-                  <p className="text-sm font-semibold text-foreground">
-                    {stats.bounds.width.toFixed(2)} × {stats.bounds.height.toFixed(2)} × {stats.bounds.depth.toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        )}
+          {/* File Size Warning */}
+          <p className="text-xs text-muted-foreground">
+            Maximum file size: {(MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB
+          </p>
 
-        {/* Supported Formats Info */}
-        {!geometry && !loading && (
-          <Card shadow="sm">
-            <CardBody className="space-y-3">
-              <CardTitle className="text-sm">Supported Formats</CardTitle>
-              <div className="grid grid-cols-2 gap-2">
-                {SUPPORTED_FORMATS.map((format) => (
-                  <div key={format.ext} className="space-y-1">
-                    <p className="text-xs font-semibold text-foreground">{format.ext}</p>
-                    <p className="text-xs text-muted">{format.description}</p>
-                  </div>
-                ))}
-              </div>
-            </CardBody>
-          </Card>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-3 justify-end pt-2">
-          <Button variant="outline" onClick={handleCancel} disabled={loading}>
-            Cancel
-          </Button>
-          {geometry && (
-            <Button variant="primary" onClick={handleAccept} disabled={loading}>
-              Import Model
-            </Button>
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-error/10 border border-error/20 rounded-lg flex items-start gap-3">
+              <AlertCircle size={16} className="text-error flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-error">{error}</p>
+            </div>
           )}
-          {!geometry && !loading && (
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Choose File
-            </Button>
+
+          {/* Selected File Status */}
+          {selectedFile && !isLoading && !error && (
+            <div className="p-3 bg-success/10 border border-success/20 rounded-lg flex items-start gap-3">
+              <CheckCircle size={16} className="text-success flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-success">File selected</p>
+                <p className="text-muted-foreground">{selectedFile.name}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="p-3 bg-info/10 border border-info/20 rounded-lg flex items-center gap-3">
+              <div className="w-4 h-4 border-2 border-info border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-info">Loading model...</p>
+            </div>
           )}
         </div>
 
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".obj,.stl,.gltf,.glb"
-          className="hidden"
-          onChange={(e) => {
-            const files = Array.from(e.target.files || []);
-            if (files.length > 0) {
-              handleFileSelect(files);
-            }
-          }}
-        />
+        {/* Footer */}
+        <div className="flex gap-2 p-6 border-t border-border">
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-card-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => selectedFile && handleImport(selectedFile)}
+            disabled={!selectedFile || isLoading}
+            className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+          >
+            {isLoading ? 'Importing...' : 'Import'}
+          </button>
+        </div>
       </div>
-    </Modal>
+    </div>
   );
 }

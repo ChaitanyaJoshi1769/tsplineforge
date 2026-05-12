@@ -384,6 +384,34 @@ export function MeshViewer({
   useSelection(cameraRef.current, rendererRef.current);
   useMaterialEditor();
 
+  // Register mesh with editor store when imported
+  useEffect(() => {
+    if (!editable || !meshRef.current || !importedGeometry) return;
+
+    const meshId = `mesh_${Date.now()}`;
+    const mesh = meshRef.current;
+
+    editorStore.addMesh({
+      id: meshId,
+      name: 'Imported Model',
+      geometry: importedGeometry,
+      transform: {
+        position: [mesh.position.x, mesh.position.y, mesh.position.z],
+        rotation: [mesh.rotation.x, mesh.rotation.y, mesh.rotation.z],
+        scale: [mesh.scale.x, mesh.scale.y, mesh.scale.z],
+      },
+      material: {
+        color: '#3b82f6',
+        opacity: 1,
+        roughness: 0.7,
+        metalness: 0,
+        emissive: '#000000',
+      },
+      object3d: mesh,
+      isVisible: true,
+    });
+  }, [editable, importedGeometry, editorStore]);
+
   return (
     <div
       ref={containerRef}

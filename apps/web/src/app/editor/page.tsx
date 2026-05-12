@@ -3,23 +3,19 @@
 import { useState, useEffect, useRef as React_useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth';
+import { useToast } from '@/context/toast';
 import { useEditorStore } from '@/hooks/useEditorStore';
-import { useMaterialEditor } from '@/hooks/useMaterialEditor';
 import { useMeshOperations } from '@/hooks/useMeshOperations';
 import { MeshViewer } from '@/components/viewport/MeshViewer';
 import { CADToolbar } from '@/components/editor/CADToolbar';
 import { AIAssistant } from '@/components/claude/AIAssistant';
 import { ImportModelDialog } from '@/components/editor/ImportModelDialog';
-import { ExportDialog } from '@/components/editor/ExportDialog';
+import { AdvancedExportDialog } from '@/components/editor/AdvancedExportDialog';
+import { MeshPropertiesPanel } from '@/components/editor/MeshPropertiesPanel';
 import type { LoaderResult } from '@/lib/modelLoaders';
 import { Header } from '@/components/layout/Header';
 import { StatusBar } from '@/components/layout/StatusBar';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardBody, CardTitle } from '@/components/ui/Card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
-import { Badge } from '@/components/ui/Badge';
-import { Separator } from '@/components/ui/Separator';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { ArrowLeft, Sparkles, Save, Download, Upload, RotateCcw, Copy, Trash2 } from 'lucide-react';
@@ -28,6 +24,7 @@ import * as THREE from 'three';
 export default function EditorPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { addToast } = useToast();
   const [meshName, setMeshName] = useState('Untitled Mesh');
   const [isSaved, setIsSaved] = useState(true);
   const [meshStats, setMeshStats] = useState({
@@ -45,12 +42,7 @@ export default function EditorPage() {
 
   // Editor hooks
   const editorStore = useEditorStore();
-  const materialEditor = useMaterialEditor();
   const meshOps = useMeshOperations();
-
-  const selectedMesh = editorStore.selectedMeshId
-    ? editorStore.meshes[editorStore.selectedMeshId]
-    : null;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -79,8 +71,18 @@ export default function EditorPage() {
       };
       localStorage.setItem('cad-editor-save', JSON.stringify(saveData));
       setIsSaved(true);
+      addToast({
+        type: 'success',
+        title: 'Project saved',
+        message: `${meshName} saved locally`,
+      });
     } catch (err) {
       console.error('Failed to save:', err);
+      addToast({
+        type: 'error',
+        title: 'Save failed',
+        message: 'Could not save your project',
+      });
     }
   };
 
@@ -143,6 +145,13 @@ export default function EditorPage() {
       faces: stats.faceCount,
       triangles: stats.faceCount,
       isValid: true,
+    });
+
+    // Show success toast
+    addToast({
+      type: 'success',
+      title: 'Model imported successfully',
+      message: `${stats.vertexCount.toLocaleString()} vertices • ${stats.faceCount.toLocaleString()} faces`,
     });
   };
 
@@ -252,7 +261,7 @@ export default function EditorPage() {
           showAIAssistant ? 'lg:w-96' : 'lg:w-80'
         }`}>
           {/* Quick actions for selected mesh */}
-          {!showAIAssistant && selectedMesh && (
+          {!showAIAssistant && editorStore.selectedMeshId && (
             <div className="border-b border-border/50 p-3 space-y-2">
               <div className="grid grid-cols-3 gap-2">
                 <Tooltip content="Duplicate (Shift+D)">
@@ -307,181 +316,9 @@ export default function EditorPage() {
               />
             </div>
           ) : (
-            <div className="h-full flex flex-col p-4 space-y-4">
-              {/* Properties Tabs */}
-              <Tabs defaultValue="properties">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="properties">Properties</TabsTrigger>
-                  <TabsTrigger value="inspector">Inspector</TabsTrigger>
-                </TabsList>
-
-                {/* Properties Tab */}
-                <TabsContent value="properties" className="space-y-4">
-                  {/* Mesh Properties Card */}
-                  <Card shadow="sm">
-                    <CardBody className="space-y-3">
-                      <CardTitle className="text-sm">Mesh</CardTitle>
-                      <Input
-                        label="Name"
-                        value={meshName}
-                        onChange={(e) => {
-                          setMeshName(e.target.value);
-                          setIsSaved(false);
-                        }}
-                        fullWidth
-                      />
-                    </CardBody>
-                  </Card>
-
-                  {/* Transform Card */}
-                  <Card shadow="sm">
-                    <CardBody className="space-y-3">
-                      <CardTitle className="text-sm">Transform</CardTitle>
-                      {selectedMesh ? (
-                        <div className="space-y-3">
-                          <div className="space-y-2">
-                            <label className="text-xs font-medium text-muted-foreground uppercase">Position X</label>
-                            <input
-                              type="number"
-                              value={selectedMesh.transform.position[0].toFixed(2)}
-                              onChange={(e) => {
-                                editorStore.setTransform(selectedMesh.id, {
-                                  position: [parseFloat(e.target.value), selectedMesh.transform.position[1], selectedMesh.transform.position[2]],
-                                });
-                              }}
-                              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-medium text-muted-foreground uppercase">Position Y</label>
-                            <input
-                              type="number"
-                              value={selectedMesh.transform.position[1].toFixed(2)}
-                              onChange={(e) => {
-                                editorStore.setTransform(selectedMesh.id, {
-                                  position: [selectedMesh.transform.position[0], parseFloat(e.target.value), selectedMesh.transform.position[2]],
-                                });
-                              }}
-                              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-medium text-muted-foreground uppercase">Position Z</label>
-                            <input
-                              type="number"
-                              value={selectedMesh.transform.position[2].toFixed(2)}
-                              onChange={(e) => {
-                                editorStore.setTransform(selectedMesh.id, {
-                                  position: [selectedMesh.transform.position[0], selectedMesh.transform.position[1], parseFloat(e.target.value)],
-                                });
-                              }}
-                              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-medium text-muted-foreground uppercase">Scale</label>
-                            <input
-                              type="number"
-                              value={selectedMesh.transform.scale[0].toFixed(2)}
-                              onChange={(e) => {
-                                const scale = parseFloat(e.target.value);
-                                editorStore.setTransform(selectedMesh.id, {
-                                  scale: [scale, scale, scale],
-                                });
-                              }}
-                              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted">Select a mesh to edit</p>
-                      )}
-                    </CardBody>
-                  </Card>
-
-                  {/* Appearance Card */}
-                  <Card shadow="sm">
-                    <CardBody className="space-y-3">
-                      <CardTitle className="text-sm">Appearance</CardTitle>
-                      {selectedMesh ? (
-                        <div className="space-y-3">
-                          <div className="space-y-2">
-                            <label className="text-xs font-medium text-muted-foreground uppercase">Color</label>
-                            <input
-                              type="color"
-                              value={selectedMesh.material.color}
-                              onChange={(e) => materialEditor.updateColor(e.target.value)}
-                              className="w-full h-10 rounded-md cursor-pointer"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-medium text-muted-foreground uppercase">Opacity</label>
-                            <input
-                              type="range"
-                              min="0"
-                              max="1"
-                              step="0.1"
-                              value={selectedMesh.material.opacity}
-                              onChange={(e) => materialEditor.updateOpacity(parseFloat(e.target.value))}
-                              className="w-full"
-                            />
-                            <span className="text-xs text-muted">{(selectedMesh.material.opacity * 100).toFixed(0)}%</span>
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-medium text-muted-foreground uppercase">Roughness</label>
-                            <input
-                              type="range"
-                              min="0"
-                              max="1"
-                              step="0.1"
-                              value={selectedMesh.material.roughness}
-                              onChange={(e) => materialEditor.updateRoughness(parseFloat(e.target.value))}
-                              className="w-full"
-                            />
-                            <span className="text-xs text-muted">{(selectedMesh.material.roughness * 100).toFixed(0)}%</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted">Select a mesh to edit</p>
-                      )}
-                    </CardBody>
-                  </Card>
-                </TabsContent>
-
-                {/* Inspector Tab */}
-                <TabsContent value="inspector" className="space-y-4">
-                  <Card shadow="sm">
-                    <CardBody className="space-y-3">
-                      <CardTitle className="text-sm">Statistics</CardTitle>
-                      <Separator />
-                      <div className="space-y-2.5 text-xs">
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted">Vertices:</span>
-                          <Badge variant="primary" size="sm">{meshStats.vertices.toLocaleString()}</Badge>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted">Faces:</span>
-                          <Badge variant="info" size="sm">{meshStats.faces.toLocaleString()}</Badge>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted">Triangles:</span>
-                          <Badge variant="secondary" size="sm">{meshStats.triangles.toLocaleString()}</Badge>
-                        </div>
-                        <div className="flex justify-between items-center pt-3 border-t border-border/50">
-                          <span className="text-muted">Status:</span>
-                          <Badge
-                            variant={meshStats.isValid ? 'success' : 'error'}
-                            size="sm"
-                            dot
-                          >
-                            {meshStats.isValid ? 'Valid' : 'Invalid'}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardBody>
-                  </Card>
-                </TabsContent>
-              </Tabs>
+            <div className="h-full flex flex-col p-4 space-y-4 overflow-y-auto">
+              {/* Mesh Properties Panel - Integrated with Zustand store */}
+              <MeshPropertiesPanel />
             </div>
           )}
         </div>
@@ -509,11 +346,11 @@ export default function EditorPage() {
         onSuccess={handleImportSuccess}
       />
 
-      {/* Export Model Dialog */}
-      <ExportDialog
+      {/* Advanced Export Dialog */}
+      <AdvancedExportDialog
         isOpen={showExportDialog}
         onClose={() => setShowExportDialog(false)}
-        scene={sceneRef.current}
+        geometry={importedGeometry}
         defaultFilename={meshName}
       />
     </div>
