@@ -12,7 +12,7 @@ interface ImportModelDialogProps {
   onSuccess: (geometry: THREE.BufferGeometry | THREE.Group, stats: LoaderResult['stats']) => void;
 }
 
-const SUPPORTED_EXTS = new Set(['stl', 'gltf', 'obj', 'glb', 'ply']);
+const SUPPORTED_EXTS = new Set(['stl', 'gltf', 'obj', 'glb', 'ply', '3mf', 'sldprt']);
 
 export function ImportModelDialog({ isOpen, onClose, onSuccess }: ImportModelDialogProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -26,7 +26,7 @@ export function ImportModelDialog({ isOpen, onClose, onSuccess }: ImportModelDia
     const ext = file.name.split('.').pop()?.toLowerCase();
     
     if (!ext || !SUPPORTED_EXTS.has(ext)) {
-      return `Unsupported format: ${ext}. Supported formats: OBJ, STL, GLTF, GLB, PLY`;
+      return `Unsupported format: ${ext}. Supported formats: OBJ, STL, GLTF, GLB, PLY, 3MF, SLDPRT`;
     }
 
     // Check file size

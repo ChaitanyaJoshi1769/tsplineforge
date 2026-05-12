@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { ThreeMFLoader } from 'three-stdlib';
 
 export interface LoaderResult {
   geometry: THREE.BufferGeometry | THREE.Group;
@@ -116,6 +117,41 @@ export async function loadPLY(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
   };
 }
 
+export async function load3MF(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
+  return new Promise((resolve, reject) => {
+    const loader = new ThreeMFLoader();
+    const blob = new Blob([arrayBuffer], { type: 'model/3mf' });
+    const url = URL.createObjectURL(blob);
+
+    loader.load(
+      url,
+      (group) => {
+        URL.revokeObjectURL(url);
+        const stats = getGeometryStats(group);
+        resolve({ geometry: group, stats });
+      },
+      undefined,
+      (error) => {
+        URL.revokeObjectURL(url);
+        reject(new Error(`Failed to load 3MF file: ${error.message}`));
+      }
+    );
+  });
+}
+
+export async function loadSDLPRT(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
+  // SDLPRT (SolidWorks Part) is a proprietary binary format
+  // We provide a stub loader with helpful guidance
+  // For production use, this would require integration with CAD conversion tools
+  // or libraries that support STEP/IGES (which SDLPRT can be converted to)
+
+  throw new Error(
+    'SDLPRT (SolidWorks Part) format requires conversion. ' +
+    'Please convert your SDLPRT file to STEP, IGES, STL, or OBJ format first. ' +
+    'Recommended: Use free online converters or export directly from SolidWorks.'
+  );
+}
+
 // Main loader function that routes to appropriate loader
 export async function loadModel(
   arrayBufferOrFile: ArrayBuffer | File,
@@ -168,6 +204,12 @@ export async function loadModel(
     case 'ply':
       result = await loadPLY(arrayBuffer);
       break;
+    case '3mf':
+      result = await load3MF(arrayBuffer);
+      break;
+    case 'sldprt':
+      result = await loadSDLPRT(arrayBuffer);
+      break;
     default:
       throw new Error(`Unsupported file format: ${ext}`);
   }
@@ -182,6 +224,8 @@ export const SUPPORTED_FORMATS = [
   { ext: 'gltf', name: 'glTF', description: 'GL Transmission Format (JSON)' },
   { ext: 'glb', name: 'GLB', description: 'GL Transmission Format (Binary)' },
   { ext: 'ply', name: 'PLY', description: 'Polygon File Format' },
+  { ext: '3mf', name: '3MF', description: '3D Manufacturing Format' },
+  { ext: 'sldprt', name: 'SLDPRT', description: 'SolidWorks Part File' },
 ] as const;
 
 export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
