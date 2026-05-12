@@ -3,7 +3,6 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { parse3MF } from './3mfParser';
-import { handleSLDPRTImport } from './sldprtHandler';
 
 export interface LoaderResult {
   geometry: THREE.BufferGeometry | THREE.Group;
@@ -128,6 +127,9 @@ export async function loadSDLPRT(arrayBuffer: ArrayBuffer): Promise<LoaderResult
   // SDLPRT (SolidWorks Part) is a proprietary binary format
   // Since it requires reverse engineering or external conversion,
   // we provide detailed conversion guidance to users
+
+  // Dynamically import the handler to avoid blocking module load
+  const { handleSLDPRTImport } = await import('./sldprtHandler');
   await handleSLDPRTImport(arrayBuffer);
 
   // This line will never be reached due to handleSLDPRTImport throwing,
