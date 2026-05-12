@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth';
+import { useEditorStore } from '@/hooks/useEditorStore';
+import { useMaterialEditor } from '@/hooks/useMaterialEditor';
+import { useMeshOperations } from '@/hooks/useMeshOperations';
 import { MeshViewer } from '@/components/viewport/MeshViewer';
 import { CADToolbar } from '@/components/editor/CADToolbar';
-import { PropertyInspector } from '@/components/editor/PropertyInspector';
 import { AIAssistant } from '@/components/claude/AIAssistant';
 import { ImportModelDialog } from '@/components/editor/ImportModelDialog';
 import type { LoaderResult } from '@/lib/modelLoaders';
@@ -19,7 +21,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Separator } from '@/components/ui/Separator';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { ArrowLeft, Sparkles, Save, Download, Upload } from 'lucide-react';
+import { ArrowLeft, Sparkles, Save, Download, Upload, RotateCcw, Copy, Trash2 } from 'lucide-react';
 import * as THREE from 'three';
 
 export default function EditorPage() {
@@ -37,6 +39,15 @@ export default function EditorPage() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importedGeometry, setImportedGeometry] = useState<THREE.BufferGeometry | THREE.Group | null>(null);
   const editingFilePath = 'services/geometry-engine/src/curvature.rs';
+
+  // Editor hooks
+  const editorStore = useEditorStore();
+  const materialEditor = useMaterialEditor();
+  const meshOps = useMeshOperations();
+
+  const selectedMesh = editorStore.selectedMeshId
+    ? editorStore.meshes[editorStore.selectedMeshId]
+    : null;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -207,6 +218,49 @@ export default function EditorPage() {
         <div className={`hidden lg:flex lg:flex-col border-l border-border/50 bg-card/50 backdrop-blur-sm overflow-y-auto transition-all duration-300 ${
           showAIAssistant ? 'lg:w-96' : 'lg:w-80'
         }`}>
+          {/* Quick actions for selected mesh */}
+          {!showAIAssistant && selectedMesh && (
+            <div className="border-b border-border/50 p-3 space-y-2">
+              <div className="grid grid-cols-3 gap-2">
+                <Tooltip content="Duplicate (Shift+D)">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      editorStore.pushToHistory();
+                      meshOps.duplicate();
+                    }}
+                    className="w-full"
+                  >
+                    <Copy size={16} />
+                  </Button>
+                </Tooltip>
+                <Tooltip content="Delete (Delete)">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      editorStore.pushToHistory();
+                      meshOps.deleteMesh();
+                    }}
+                    className="w-full"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </Tooltip>
+                <Tooltip content="Reset Transform">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => meshOps.resetTransform()}
+                    className="w-full"
+                  >
+                    <RotateCcw size={16} />
+                  </Button>
+                </Tooltip>
+              </div>
+            </div>
+          )}
           {showAIAssistant ? (
             <div className="h-full flex flex-col">
               <AIAssistant
@@ -250,15 +304,65 @@ export default function EditorPage() {
                   <Card shadow="sm">
                     <CardBody className="space-y-3">
                       <CardTitle className="text-sm">Transform</CardTitle>
-                      <PropertyInspector
-                        title=""
-                        properties={[
-                          { name: 'Position X', value: 0, type: 'number', onChange: () => {} },
-                          { name: 'Position Y', value: 0, type: 'number', onChange: () => {} },
-                          { name: 'Position Z', value: 0, type: 'number', onChange: () => {} },
-                          { name: 'Scale', value: 1, type: 'number', onChange: () => {} },
-                        ]}
-                      />
+                      {selectedMesh ? (
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground uppercase">Position X</label>
+                            <input
+                              type="number"
+                              value={selectedMesh.transform.position[0].toFixed(2)}
+                              onChange={(e) => {
+                                editorStore.setTransform(selectedMesh.id, {
+                                  position: [parseFloat(e.target.value), selectedMesh.transform.position[1], selectedMesh.transform.position[2]],
+                                });
+                              }}
+                              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground uppercase">Position Y</label>
+                            <input
+                              type="number"
+                              value={selectedMesh.transform.position[1].toFixed(2)}
+                              onChange={(e) => {
+                                editorStore.setTransform(selectedMesh.id, {
+                                  position: [selectedMesh.transform.position[0], parseFloat(e.target.value), selectedMesh.transform.position[2]],
+                                });
+                              }}
+                              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground uppercase">Position Z</label>
+                            <input
+                              type="number"
+                              value={selectedMesh.transform.position[2].toFixed(2)}
+                              onChange={(e) => {
+                                editorStore.setTransform(selectedMesh.id, {
+                                  position: [selectedMesh.transform.position[0], selectedMesh.transform.position[1], parseFloat(e.target.value)],
+                                });
+                              }}
+                              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground uppercase">Scale</label>
+                            <input
+                              type="number"
+                              value={selectedMesh.transform.scale[0].toFixed(2)}
+                              onChange={(e) => {
+                                const scale = parseFloat(e.target.value);
+                                editorStore.setTransform(selectedMesh.id, {
+                                  scale: [scale, scale, scale],
+                                });
+                              }}
+                              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted">Select a mesh to edit</p>
+                      )}
                     </CardBody>
                   </Card>
 
@@ -266,14 +370,47 @@ export default function EditorPage() {
                   <Card shadow="sm">
                     <CardBody className="space-y-3">
                       <CardTitle className="text-sm">Appearance</CardTitle>
-                      <PropertyInspector
-                        title=""
-                        properties={[
-                          { name: 'Color', value: '#3b82f6', type: 'text', onChange: () => {} },
-                          { name: 'Opacity', value: 1, type: 'number', onChange: () => {} },
-                          { name: 'Roughness', value: 0.5, type: 'number', onChange: () => {} },
-                        ]}
-                      />
+                      {selectedMesh ? (
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground uppercase">Color</label>
+                            <input
+                              type="color"
+                              value={selectedMesh.material.color}
+                              onChange={(e) => materialEditor.updateColor(e.target.value)}
+                              className="w-full h-10 rounded-md cursor-pointer"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground uppercase">Opacity</label>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.1"
+                              value={selectedMesh.material.opacity}
+                              onChange={(e) => materialEditor.updateOpacity(parseFloat(e.target.value))}
+                              className="w-full"
+                            />
+                            <span className="text-xs text-muted">{(selectedMesh.material.opacity * 100).toFixed(0)}%</span>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground uppercase">Roughness</label>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.1"
+                              value={selectedMesh.material.roughness}
+                              onChange={(e) => materialEditor.updateRoughness(parseFloat(e.target.value))}
+                              className="w-full"
+                            />
+                            <span className="text-xs text-muted">{(selectedMesh.material.roughness * 100).toFixed(0)}%</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted">Select a mesh to edit</p>
+                      )}
                     </CardBody>
                   </Card>
                 </TabsContent>

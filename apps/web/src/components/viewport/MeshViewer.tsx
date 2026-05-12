@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { useEditorStore } from '@/hooks/useEditorStore';
+import { useTransformControls } from '@/hooks/useTransformControls';
+import { useSelection } from '@/hooks/useSelection';
+import { useMaterialEditor } from '@/hooks/useMaterialEditor';
 
 interface MeshViewerProps {
-  meshData?: ArrayBuffer;
   importedGeometry?: THREE.BufferGeometry | THREE.Group | null;
   autoRotate?: boolean;
-  showNormals?: boolean;
-  showWireframe?: boolean;
   editable?: boolean;
   onMeshChange?: (mesh: THREE.Mesh) => void;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -16,11 +17,8 @@ interface MeshViewerProps {
 }
 
 export function MeshViewer({
-  meshData,
   importedGeometry,
   autoRotate = false,
-  showNormals = false,
-  showWireframe = false,
   editable = false,
   onMeshChange,
 }: MeshViewerProps) {
@@ -29,17 +27,15 @@ export function MeshViewer({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const meshRef = useRef<THREE.Mesh | THREE.Group | null>(null);
-  const controlsRef = useRef<Record<string, unknown> | null>(null);
-  const [selectedVertex, setSelectedVertex] = useState<number | null>(null);
+  const importedGeometryRef = useRef<THREE.BufferGeometry | THREE.Group | null>(null);
+  const [selectedVertex, _setSelectedVertex] = useState<number | null>(null);
 
-  // Store unused props to prevent eslint warnings
-  void showNormals;
-  void controlsRef;
-  void selectedVertex;
-  void setSelectedVertex;
+  // Editor hooks
+  const editorStore = useEditorStore();
 
+  // Initialize scene, renderer, and camera once
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || sceneRef.current) return; // Only initialize once
 
     // Initialize scene
     const scene = new THREE.Scene();
@@ -78,83 +74,19 @@ export function MeshViewer({
     const gridHelper = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
     scene.add(gridHelper);
 
-    // Create default mesh or use provided data
-    let mesh = meshRef.current;
-
-    // Remove existing mesh if we're importing new geometry
-    if (importedGeometry && meshRef.current) {
-      scene.remove(meshRef.current);
-      meshRef.current = null;
-      mesh = null;
-    }
-
-    if (!mesh) {
-      // Use imported geometry if provided, otherwise create default box
-      if (importedGeometry) {
-        if (importedGeometry instanceof THREE.BufferGeometry) {
-          // It's a geometry, create a mesh from it
-          const material = new THREE.MeshPhongMaterial({
-            color: 0x3b82f6,
-            emissive: 0x1e40af,
-            shininess: 100,
-          });
-          mesh = new THREE.Mesh(importedGeometry, material);
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
-          scene.add(mesh);
-          meshRef.current = mesh;
-        } else if (importedGeometry instanceof THREE.Group) {
-          // It's a group (from GLTF/OBJ), use it directly
-          scene.add(importedGeometry);
-          meshRef.current = importedGeometry;
-
-          // Apply shadow properties to all meshes in the group
-          importedGeometry.traverse((node) => {
-            if (node instanceof THREE.Mesh) {
-              node.castShadow = true;
-              node.receiveShadow = true;
-            }
-          });
-          mesh = importedGeometry;
-        }
-      } else {
-        // Create default box
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshPhongMaterial({
-          color: 0x3b82f6,
-          emissive: 0x1e40af,
-          shininess: 100,
-        });
-        mesh = new THREE.Mesh(geometry, material);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        scene.add(mesh);
-        meshRef.current = mesh;
-      }
-    }
-
-    // Auto-fit camera to geometry bounds
-    if (importedGeometry && mesh) {
-      const bbox = new THREE.Box3().setFromObject(mesh);
-      const size = bbox.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const fov = camera.fov * (Math.PI / 180);
-      let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-      cameraZ *= 1.5; // Add some padding
-      camera.position.z = cameraZ;
-
-      const center = bbox.getCenter(new THREE.Vector3());
-      mesh.position.sub(center); // Center the mesh
-      camera.lookAt(0, 0, 0);
-    }
-
-    // Add wireframe if needed
-    if (showWireframe && mesh && mesh instanceof THREE.Mesh) {
-      const wireframeGeometry = new THREE.WireframeGeometry(mesh.geometry);
-      const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 1 });
-      const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
-      mesh.add(wireframe);
-    }
+    // Create default box
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x3b82f6,
+      emissive: 0x1e40af,
+      roughness: 0.7,
+      metalness: 0,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+    meshRef.current = mesh;
 
     // Animation loop with frame rate control
     let lastTime = Date.now();
@@ -241,9 +173,99 @@ export function MeshViewer({
       window.removeEventListener('wheel', onMouseWheel);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('click', onClick);
+      renderer.dispose();
       containerRef.current?.removeChild(renderer.domElement);
     };
-  }, [autoRotate, showWireframe, meshData, importedGeometry, editable, onMeshChange]);
+  }, []);
+
+  // Handle imported geometry updates (separate effect)
+  useEffect(() => {
+    if (!importedGeometry || !sceneRef.current || !cameraRef.current) return;
+
+    // Skip if we've already processed this geometry
+    if (importedGeometryRef.current === importedGeometry) return;
+    importedGeometryRef.current = importedGeometry;
+
+    const scene = sceneRef.current;
+    const camera = cameraRef.current;
+
+    // Remove previous imported mesh
+    if (meshRef.current) {
+      scene.remove(meshRef.current);
+    }
+
+    let mesh: THREE.Mesh | THREE.Group | null = null;
+
+    if (importedGeometry instanceof THREE.BufferGeometry) {
+      // It's a geometry, create a mesh from it
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x3b82f6,
+        emissive: 0x000000,
+        roughness: 0.7,
+        metalness: 0,
+      });
+      mesh = new THREE.Mesh(importedGeometry, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+    } else if (importedGeometry instanceof THREE.Group) {
+      // It's a group (from GLTF/OBJ), use it directly
+      mesh = importedGeometry;
+      scene.add(mesh);
+
+      // Apply shadow properties to all meshes in the group
+      mesh.traverse((node) => {
+        if (node instanceof THREE.Mesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+          // Ensure material has proper properties for editing
+          if (!node.material) {
+            node.material = new THREE.MeshStandardMaterial({
+              color: 0x3b82f6,
+              roughness: 0.7,
+              metalness: 0,
+            });
+          }
+        }
+      });
+    }
+
+    if (mesh) {
+      meshRef.current = mesh;
+      const meshId = `imported_${Date.now()}`;
+
+      // Register mesh with editor store
+      if (editable) {
+        editorStore.addMesh({
+          id: meshId,
+          name: 'Imported Model',
+          geometry: importedGeometry,
+          transform: { position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1] },
+          material: { color: '#3b82f6', opacity: 1, roughness: 0.7, metalness: 0, emissive: '#000000' },
+          object3d: mesh,
+          isVisible: true,
+        });
+      }
+
+      // Auto-fit camera to geometry bounds
+      const bbox = new THREE.Box3().setFromObject(mesh);
+      const size = bbox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const fov = camera.fov * (Math.PI / 180);
+      let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+      cameraZ *= 1.5; // Add some padding
+      camera.position.z = cameraZ;
+
+      const center = bbox.getCenter(new THREE.Vector3());
+      mesh.position.set(-center.x, -center.y, -center.z); // Center the mesh properly
+      camera.lookAt(0, 0, 0);
+    }
+  }, [importedGeometry, editable]);
+
+  // Set up transform controls and selection (only if editable)
+  useTransformControls(rendererRef.current, cameraRef.current);
+  useSelection(cameraRef.current, rendererRef.current);
+  useMaterialEditor();
 
   return (
     <div

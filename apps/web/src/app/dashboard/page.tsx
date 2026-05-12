@@ -121,13 +121,19 @@ export default function Dashboard() {
           </SidebarItem>
           <SidebarItem
             icon="📁"
-            onClick={() => {}}
+            onClick={() => {
+              // TODO: Implement recent projects filtering
+              alert('Recent projects feature coming soon');
+            }}
           >
             Recent
           </SidebarItem>
           <SidebarItem
             icon="⭐"
-            onClick={() => {}}
+            onClick={() => {
+              // TODO: Implement favorites filtering
+              alert('Favorites feature coming soon');
+            }}
           >
             Favorites
           </SidebarItem>
@@ -142,7 +148,7 @@ export default function Dashboard() {
           </SidebarItem>
           <SidebarItem
             icon="⚙️"
-            onClick={() => {}}
+            onClick={() => router.push('/settings')}
           >
             Settings
           </SidebarItem>
@@ -167,7 +173,10 @@ export default function Dashboard() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => {}}
+                onClick={() => {
+                  // TODO: Implement project file upload (zip with model and metadata)
+                  alert('Project upload feature coming soon');
+                }}
                 className="hidden sm:inline-flex"
               >
                 ⬆ Upload
