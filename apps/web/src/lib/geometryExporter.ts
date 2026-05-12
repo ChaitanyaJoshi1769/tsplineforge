@@ -1,9 +1,7 @@
 'use client';
 
 import * as THREE from 'three';
-import { STLExporter } from 'three-stdlib/exporters/STLExporter';
-import { GLTFExporter } from 'three-stdlib/exporters/GLTFExporter';
-import { OBJExporter } from 'three-stdlib/exporters/OBJExporter';
+import { STLExporter, GLTFExporter, OBJExporter } from 'three-stdlib';
 import type { ExportFormat, ExportUnit } from './exportFormats';
 import { UNIT_SCALES } from './exportFormats';
 
