@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { ThreeMFLoader } from 'three-stdlib';
 
 export interface LoaderResult {
   geometry: THREE.BufferGeometry | THREE.Group;
@@ -118,25 +117,13 @@ export async function loadPLY(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
 }
 
 export async function load3MF(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
-  return new Promise((resolve, reject) => {
-    const loader = new ThreeMFLoader();
-    const blob = new Blob([arrayBuffer], { type: 'model/3mf' });
-    const url = URL.createObjectURL(blob);
-
-    loader.load(
-      url,
-      (group) => {
-        URL.revokeObjectURL(url);
-        const stats = getGeometryStats(group);
-        resolve({ geometry: group, stats });
-      },
-      undefined,
-      (error) => {
-        URL.revokeObjectURL(url);
-        reject(new Error(`Failed to load 3MF file: ${error.message}`));
-      }
-    );
-  });
+  // 3MF (3D Manufacturing Format) support coming soon
+  // For now, provide helpful guidance to users
+  throw new Error(
+    '3MF (3D Manufacturing Format) support coming soon. ' +
+    'Please convert your 3MF file to STL, OBJ, or glTF format. ' +
+    'Recommended: Use free online 3D converters or Fusion 360 for conversion.'
+  );
 }
 
 export async function loadSDLPRT(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
