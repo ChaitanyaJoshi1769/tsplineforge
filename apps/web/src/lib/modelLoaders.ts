@@ -3,6 +3,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { parse3MF } from './3mfParser';
+import { handleSLDPRTImport } from './sldprtHandler';
 
 export interface LoaderResult {
   geometry: THREE.BufferGeometry | THREE.Group;
@@ -125,15 +126,13 @@ export async function load3MF(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
 
 export async function loadSDLPRT(arrayBuffer: ArrayBuffer): Promise<LoaderResult> {
   // SDLPRT (SolidWorks Part) is a proprietary binary format
-  // We provide a stub loader with helpful guidance
-  // For production use, this would require integration with CAD conversion tools
-  // or libraries that support STEP/IGES (which SDLPRT can be converted to)
+  // Since it requires reverse engineering or external conversion,
+  // we provide detailed conversion guidance to users
+  await handleSLDPRTImport(arrayBuffer);
 
-  throw new Error(
-    'SDLPRT (SolidWorks Part) format requires conversion. ' +
-    'Please convert your SDLPRT file to STEP, IGES, STL, or OBJ format first. ' +
-    'Recommended: Use free online converters or export directly from SolidWorks.'
-  );
+  // This line will never be reached due to handleSLDPRTImport throwing,
+  // but TypeScript requires a return value
+  return { geometry: new THREE.Group(), stats: { vertexCount: 0, faceCount: 0 } };
 }
 
 // Main loader function that routes to appropriate loader

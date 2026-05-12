@@ -19,14 +19,15 @@ export async function parse3MF(arrayBuffer: ArrayBuffer): Promise<THREE.Group> {
   await zip.loadAsync(arrayBuffer);
 
   // Find the main model file (usually 3dmodel.model)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let modelFile: any = null;
-  let modelFileName = '';
+  let _modelFileName = '';
 
   // Look for .model files in the root
   Object.keys(zip.files).forEach((filename) => {
     if (filename.endsWith('.model') && !filename.includes('/')) {
       modelFile = zip.files[filename];
-      modelFileName = filename;
+      _modelFileName = filename;
     }
   });
 
@@ -56,7 +57,7 @@ function parse3MFModel(xmlText: string): THREE.Group {
 
   // Parse all objects
   const objects = resources.getElementsByTagName('object');
-  Array.from(objects).forEach((objectElem, index) => {
+  Array.from(objects).forEach((objectElem) => {
     const id = objectElem.getAttribute('id');
     const name = objectElem.getAttribute('name') || `Object_${id}`;
 

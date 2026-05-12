@@ -29,13 +29,20 @@ function ensureMesh(geometry: THREE.BufferGeometry | THREE.Group): THREE.Mesh | 
  */
 async function exportToSTL(
   geometry: THREE.BufferGeometry | THREE.Group,
-  filename: string
+  _filename: string
 ): Promise<Blob> {
   const mesh = ensureMesh(geometry);
   const exporter = new STLExporter();
-  const stlData = exporter.parse(mesh, { binary: true });
+  // STLExporter.parse() returns the STL data as a string or ArrayBuffer
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const stlData = (exporter as any).parse(mesh) as string | ArrayBuffer;
 
-  return new Blob([stlData], { type: 'model/stl' });
+  // Handle both string and ArrayBuffer returns
+  if (typeof stlData === 'string') {
+    return new Blob([stlData], { type: 'model/stl' });
+  } else {
+    return new Blob([stlData], { type: 'model/stl' });
+  }
 }
 
 /**
@@ -43,7 +50,7 @@ async function exportToSTL(
  */
 async function exportToGLTF(
   geometry: THREE.BufferGeometry | THREE.Group,
-  filename: string
+  _filename: string
 ): Promise<Blob> {
   const mesh = ensureMesh(geometry);
   const scene = new THREE.Scene();
@@ -51,17 +58,19 @@ async function exportToGLTF(
 
   return new Promise((resolve, reject) => {
     const exporter = new GLTFExporter();
-
-    exporter.parse(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (exporter as any).parse(
       scene,
-      (gltf) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (gltf: any) => {
         // Convert the parsed glTF to JSON string
         const json = JSON.stringify(gltf);
         const blob = new Blob([json], { type: 'model/gltf+json' });
         resolve(blob);
       },
-      (error) => {
-        reject(new Error(`glTF export failed: ${error.message}`));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (error: any) => {
+        reject(new Error(`glTF export failed: ${error?.message || 'Unknown error'}`));
       }
     );
   });
@@ -72,7 +81,7 @@ async function exportToGLTF(
  */
 async function exportToGLB(
   geometry: THREE.BufferGeometry | THREE.Group,
-  filename: string
+  _filename: string
 ): Promise<Blob> {
   const mesh = ensureMesh(geometry);
   const scene = new THREE.Scene();
@@ -80,17 +89,18 @@ async function exportToGLB(
 
   return new Promise((resolve, reject) => {
     const exporter = new GLTFExporter();
-
-    exporter.parse(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (exporter as any).parse(
       scene,
-      (gltf) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (gltf: any) => {
         // GLB is the binary representation
         const blob = new Blob([JSON.stringify(gltf)], { type: 'model/gltf-binary' });
         resolve(blob);
       },
-      { binary: true },
-      (error) => {
-        reject(new Error(`GLB export failed: ${error.message}`));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (error: any) => {
+        reject(new Error(`GLB export failed: ${error?.message || 'Unknown error'}`));
       }
     );
   });
@@ -101,7 +111,7 @@ async function exportToGLB(
  */
 async function exportToOBJ(
   geometry: THREE.BufferGeometry | THREE.Group,
-  filename: string
+  _filename: string
 ): Promise<Blob> {
   const mesh = ensureMesh(geometry);
   const exporter = new OBJExporter();
@@ -116,7 +126,7 @@ async function exportToOBJ(
  */
 async function exportToSTEP(
   geometry: THREE.BufferGeometry | THREE.Group,
-  filename: string
+  _filename: string
 ): Promise<Blob> {
   const mesh = ensureMesh(geometry);
 

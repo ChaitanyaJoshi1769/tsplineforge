@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { users, userExists, createUser } from '@/lib/userStore';
+import { userExists, createUser } from '@/lib/userStore';
 
 export async function POST(request: NextRequest) {
   try {
